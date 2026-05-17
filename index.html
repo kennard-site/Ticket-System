@@ -291,7 +291,7 @@
   ═══════════════════════════════════════ */
   .dashboard-content {
     padding: 32px 24px;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     width: 100%;
     flex: 1;
@@ -328,13 +328,17 @@
     padding: 20px;
     position: relative;
     overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+    border-top: 2px solid var(--accent);
   }
+  .stat-card:hover { border-color: var(--border2); transform: translateY(-2px); }
   .stat-card::before {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 2px;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    background: inherit;
+    display: none;
   }
   .stat-card .num {
     font-family: 'Syne', sans-serif;
@@ -488,7 +492,7 @@
   }
   thead th {
     text-align: left;
-    padding: 12px 16px;
+    padding: 10px 16px;
     font-family: 'DM Mono', monospace;
     font-size: 10px;
     letter-spacing: 1px;
@@ -496,7 +500,9 @@
     color: var(--text3);
     border-bottom: 1px solid var(--border);
     white-space: nowrap;
+    background: var(--surface2);
   }
+  thead th:first-child { border-radius: 0; }
   tbody tr {
     border-bottom: 1px solid var(--border);
     transition: background 0.15s;
@@ -513,7 +519,8 @@
     color: var(--text2);
     margin-bottom: 2px;
   }
-  .actions-cell { display: flex; flex-wrap: wrap; gap: 6px; }
+  .actions-cell { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .actions-cell .btn-sm { font-size: 11px; padding: 5px 10px; }
 
   /* ═══════════════════════════════════════
      MODAL
@@ -549,7 +556,17 @@
   .modal .modal-sub {
     font-size: 13px;
     color: var(--text2);
-    margin-bottom: 24px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text3);
+    margin: 16px 0 10px;
   }
   .modal-footer {
     display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px;
@@ -633,53 +650,12 @@
   }
   .detail-field.full { grid-column: 1/-1; }
 
-  /* ═══════════════════════════════════════
-     GSAS SETUP NOTICE
-  ═══════════════════════════════════════ */
-  .setup-notice {
-    background: rgba(245,166,35,0.07);
-    border: 1px solid rgba(245,166,35,0.2);
-    border-radius: var(--radius);
-    padding: 20px 24px;
-    margin-bottom: 24px;
-    font-size: 13px;
-    line-height: 1.7;
-  }
-  .setup-notice h3 {
-    font-family: 'Syne', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--accent-amber);
-    margin-bottom: 8px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .setup-notice code {
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    background: rgba(245,166,35,0.1);
-    padding: 2px 6px;
-    border-radius: 4px;
-    color: var(--accent-amber);
-  }
+
 
   /* ═══════════════════════════════════════
      ANIMATIONS
   ═══════════════════════════════════════ */
-  /* Config warning banner */
-  .config-warning {
-    display: none;
-    background: rgba(245,166,35,0.1);
-    border: 1px solid rgba(245,166,35,0.35);
-    border-radius: 10px;
-    padding: 12px 16px;
-    margin-bottom: 20px;
-    font-size: 12.5px;
-    color: #c9933a;
-    line-height: 1.6;
-    text-align: center;
-  }
-  .config-warning strong { color: var(--accent-amber); display: block; margin-bottom: 2px; }
-  .config-warning.show { display: block; }
+  
 
   @keyframes fadeSlideUp {
     from { opacity: 0; transform: translateY(16px); }
@@ -775,10 +751,7 @@
     <div class="login-card">
       <h2>Welcome back</h2>
       <p class="subtitle">Enter your credentials to continue</p>
-      <div class="config-warning" id="config-warning">
-        <strong>⚙️ System Not Connected</strong>
-        Open <code style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent-amber);">index.html</code> and set <code style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent-amber);">CONFIG.GAS_URL</code> to your Google Apps Script URL.
-      </div>
+      <div style="display:none" id="login-system-info"></div>
       <div class="login-error" id="login-error">
         ⚠ Incorrect username or password. Please try again.
       </div>
@@ -904,6 +877,10 @@
       HelpDesk Pro
     </div>
     <div class="navbar-right">
+      <div class="sync-indicator" style="margin-right:4px;">
+        <div class="sync-dot" id="nav-sync-dot" style="width:5px;height:5px;"></div>
+        <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);" id="nav-sync-text">Live</span>
+      </div>
       <div class="user-chip">
         <div class="avatar avatar-admin">A</div>
         <span>Admin peer</span>
@@ -914,62 +891,99 @@
   </nav>
   <div class="dashboard-content">
     <div class="page-header">
-      <h1>Admin Dashboard</h1>
-      <p>Manage and resolve all support tickets</p>
-    </div>
-
-    <div class="setup-notice" id="sheets-setup-notice">
-      <h3>⚙️ Google Sheets Setup Required</h3>
-      To enable real-time sync, paste your Google Apps Script Web App URL below, then click Save.
-      See the <strong>Setup Guide</strong> included with this file for step-by-step instructions.<br><br>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:4px;">
-        <input type="text" id="gas-url-input" placeholder="https://script.google.com/macros/s/.../exec"
-          style="flex:1;min-width:260px;background:var(--surface3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;font-family:'DM Mono',monospace;">
-        <button class="btn btn-sm btn-accept" onclick="saveGASUrl()">Save URL</button>
-        <button class="btn btn-sm btn-outline" onclick="dismissSetup()">Dismiss</button>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(79,138,255,0.1);border:1px solid rgba(79,138,255,0.2);border-radius:100px;padding:4px 12px;margin-bottom:10px;">
+            <div class="sync-dot" id="admin-header-dot" style="width:5px;height:5px;"></div>
+            <span style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);">Live Sync Active</span>
+          </div>
+          <h1>Admin Dashboard</h1>
+          <p>Manage, assign, and resolve all support tickets in real time</p>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);text-align:right;padding-top:4px;">
+          <div style="margin-bottom:2px;">v2.1.0 · HelpDesk Pro</div>
+          <div id="admin-last-sync" style="color:var(--text3);">Connecting…</div>
+        </div>
       </div>
     </div>
 
     <div class="stats-row">
-      <div class="stat-card"><div class="num num-blue" id="stat-total">0</div><div class="lbl">Total Tickets</div></div>
-      <div class="stat-card"><div class="num num-amber" id="stat-open">0</div><div class="lbl">Open</div></div>
-      <div class="stat-card"><div class="num num-blue" id="stat-accepted">0</div><div class="lbl">In Progress</div></div>
-      <div class="stat-card"><div class="num num-green" id="stat-resolved">0</div><div class="lbl">Resolved</div></div>
+      <div class="stat-card" style="border-top-color:var(--accent);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(79,138,255,0.12);border:1px solid rgba(79,138,255,0.2);display:flex;align-items:center;justify-content:center;font-size:16px;">🎫</div>
+          <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);">ALL TIME</span>
+        </div>
+        <div class="num num-blue" id="stat-total">0</div>
+        <div class="lbl">Total Tickets</div>
+      </div>
+      <div class="stat-card" style="border-top-color:var(--accent-amber);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.2);display:flex;align-items:center;justify-content:center;font-size:16px;">📬</div>
+          <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);">PENDING</span>
+        </div>
+        <div class="num num-amber" id="stat-open">0</div>
+        <div class="lbl">Open</div>
+      </div>
+      <div class="stat-card" style="border-top-color:var(--accent);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(79,138,255,0.12);border:1px solid rgba(79,138,255,0.2);display:flex;align-items:center;justify-content:center;font-size:16px;">⚡</div>
+          <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);">ACTIVE</span>
+        </div>
+        <div class="num num-blue" id="stat-accepted">0</div>
+        <div class="lbl">In Progress</div>
+      </div>
+      <div class="stat-card" style="border-top-color:var(--accent-green);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(34,211,160,0.12);border:1px solid rgba(34,211,160,0.2);display:flex;align-items:center;justify-content:center;font-size:16px;">✅</div>
+          <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);">DONE</span>
+        </div>
+        <div class="num num-green" id="stat-resolved">0</div>
+        <div class="lbl">Resolved</div>
+      </div>
     </div>
 
     <div class="card">
-      <div class="card-header">
-        <h2>All Tickets</h2>
-        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <!-- Card Top Bar: Title + Sync + Export -->
+      <div style="padding:16px 24px 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border-bottom:0;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <h2 style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;">All Tickets</h2>
           <div class="sync-indicator">
             <div class="sync-dot" id="admin-sync-dot"></div>
-            <span id="admin-sync-text">Synced</span>
+            <span id="admin-sync-text" style="font-size:10px;">Connecting…</span>
           </div>
-          <div class="filter-bar">
-            <input type="text" id="search-input" placeholder="Search tickets..." oninput="renderAdminTable()">
-            <select id="filter-status" onchange="renderAdminTable()">
-              <option value="">All Statuses</option>
-              <option value="Open">Open</option>
-              <option value="Accepted">Accepted</option>
-              <option value="Resolved">Resolved</option>
-            </select>
-            <select id="filter-site" onchange="renderAdminTable()">
-              <option value="">All Sites</option>
-              <option value="Manila">Manila</option>
-              <option value="Cebu">Cebu</option>
-              <option value="Offsite">Offsite</option>
-            </select>
-          </div>
-          <button class="btn btn-outline btn-sm" onclick="loadAdminTickets()">⟳ Refresh</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-outline btn-sm" onclick="loadAdminTickets()" style="padding:6px 12px;font-size:12px;">⟳ Refresh</button>
           <div style="position:relative;display:inline-block;" id="export-dropdown-wrap">
-            <button class="btn btn-sm" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border:none;box-shadow:0 4px 12px rgba(79,138,255,0.3);" onclick="toggleExportMenu()">⬇ Export</button>
+            <button class="btn btn-sm" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border:none;box-shadow:0 4px 12px rgba(79,138,255,0.25);padding:6px 14px;font-size:12px;" onclick="toggleExportMenu()">⬇ Export</button>
             <div id="export-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:6px;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,0.4);z-index:50;">
-              <button onclick="exportCSV()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;border-radius:6px;border:none;background:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='var(--surface3)'" onmouseout="this.style.background='none'">📄 Export as CSV</button>
-              <button onclick="exportXLSX()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;border-radius:6px;border:none;background:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='var(--surface3)'" onmouseout="this.style.background='none'">📊 Export as Excel</button>
+              <button onclick="exportCSV()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;border-radius:6px;border:none;background:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;" onmouseover="this.style.background='var(--surface3)'" onmouseout="this.style.background='none'">📄 Export as CSV</button>
+              <button onclick="exportXLSX()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;border-radius:6px;border:none;background:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;" onmouseover="this.style.background='var(--surface3)'" onmouseout="this.style.background='none'">📊 Export as Excel</button>
             </div>
           </div>
         </div>
       </div>
+      <!-- Filter Bar -->
+      <div style="padding:12px 24px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <input type="text" id="search-input" placeholder="🔍  Search by name, ID, issue…" oninput="renderAdminTable()"
+          style="flex:1;min-width:200px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color 0.2s;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        <select id="filter-status" onchange="renderAdminTable()"
+          style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;cursor:pointer;">
+          <option value="">All Statuses</option>
+          <option value="Open">🟡 Open</option>
+          <option value="Accepted">🔵 Accepted</option>
+          <option value="Resolved">🟢 Resolved</option>
+        </select>
+        <select id="filter-site" onchange="renderAdminTable()"
+          style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;cursor:pointer;">
+          <option value="">All Sites</option>
+          <option value="Manila">📍 Manila</option>
+          <option value="Cebu">📍 Cebu</option>
+          <option value="Offsite">📍 Offsite</option>
+        </select>
+      </div>
+      <div class="card-header" style="display:none;"><!-- hidden placeholder for JS compatibility --></div>
       <div class="table-wrap">
         <table>
           <thead>
@@ -985,7 +999,7 @@
             </tr>
           </thead>
           <tbody id="admin-table-body">
-            <tr><td colspan="8"><div class="empty-state"><div class="icon">📋</div><h3>No tickets yet</h3><p>Tickets submitted by users will appear here.</p></div></td></tr>
+            <tr><td colspan="8"><div class="empty-state"><div class="icon">📋</div><h3>No tickets yet</h3><p>Tickets submitted by end users will appear here automatically.</p></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -1003,30 +1017,33 @@
 
     <div class="detail-grid" id="modal-detail-view"></div>
 
+    <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;padding-top:4px;">Admin Actions</div>
+
     <div class="form-group">
       <label>Ticket Status</label>
       <select id="modal-status">
-        <option value="Open">Open</option>
-        <option value="Accepted">Accepted</option>
-        <option value="Resolved">Resolved</option>
+        <option value="Open">🟡 Open</option>
+        <option value="Accepted">🔵 Accepted — In Progress</option>
+        <option value="Resolved">🟢 Resolved — Closed</option>
       </select>
     </div>
     <div class="form-group">
       <label>Assigned Admin</label>
-      <input type="text" id="modal-admin" placeholder="Admin name handling this ticket">
+      <input type="text" id="modal-admin" placeholder="Name of admin handling this ticket">
     </div>
     <div class="form-group">
       <label>Resolution Details / Remarks</label>
-      <textarea id="modal-resolution" placeholder="Describe the resolution or add remarks..."></textarea>
+      <textarea id="modal-resolution" placeholder="Describe the resolution, steps taken, or add any relevant remarks…"></textarea>
     </div>
     <div class="form-group" id="date-resolved-group" style="display:none;">
       <label>Date Resolved</label>
-      <input type="text" id="modal-date-resolved" placeholder="Auto-filled on resolve" readonly style="opacity:0.7;">
+      <input type="text" id="modal-date-resolved" placeholder="Auto-filled when marked Resolved" readonly
+        style="opacity:0.6;background:var(--surface3);cursor:not-allowed;">
     </div>
 
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" style="width:auto;" onclick="saveTicketUpdate()">Save Changes →</button>
+      <button class="btn btn-primary" style="width:auto;padding:12px 28px;" onclick="saveTicketUpdate()">Save Changes →</button>
     </div>
   </div>
 </div>
@@ -1190,10 +1207,24 @@ async function pollOnce() {
       else                  { loadTickets(); updateUserStats(); }
     }
 
-    setSyncState(dotId, txtId, 'ok', `Live · ${formatDatePH(new Date()).split(' ')[1]}`);
+    const timeStr = formatDatePH(new Date()).split(' ')[1];
+    setSyncState(dotId, txtId, 'ok', `Live · ${timeStr}`);
+    // Sync all indicators
+    const hdrDot = document.getElementById('admin-header-dot');
+    const lastSync = document.getElementById('admin-last-sync');
+    const navDot = document.getElementById('nav-sync-dot');
+    const navTxt = document.getElementById('nav-sync-text');
+    if (hdrDot) hdrDot.className = 'sync-dot';
+    if (lastSync) lastSync.textContent = `Last sync: ${timeStr}`;
+    if (navDot) navDot.className = 'sync-dot';
+    if (navTxt) navTxt.textContent = timeStr;
 
   } catch(e) {
     setSyncState(dotId, txtId, 'error', 'Retrying…');
+    const navD = document.getElementById('nav-sync-dot');
+    const navT = document.getElementById('nav-sync-text');
+    if (navD) navD.className = 'sync-dot error';
+    if (navT) navT.textContent = 'Offline';
   } finally {
     isFetching = false;
   }
@@ -1358,9 +1389,9 @@ function renderAdminTable() {
       <td style="font-size:13px;">${t.assignedAdmin?escHtml(t.assignedAdmin):'<span style="color:var(--text3)">—</span>'}</td>
       <td>
         <div class="actions-cell">
-          ${t.status==='Open'?`<button class="btn btn-sm btn-accept" onclick="quickAccept('${escHtml(t.id)}')">✓ Accept</button>`:''}
-          ${t.status!=='Resolved'?`<button class="btn btn-sm btn-resolve" onclick="quickResolve('${escHtml(t.id)}')">✔ Resolve</button>`:''}
-          <button class="btn btn-sm btn-edit" onclick="openModal('${escHtml(t.id)}')">✎ Edit</button>
+          ${t.status==='Open'?`<button class="btn btn-sm btn-accept" onclick="quickAccept('${escHtml(t.id)}')" title="Accept this ticket">✓ Accept</button>`:''}
+          ${t.status!=='Resolved'?`<button class="btn btn-sm btn-resolve" onclick="quickResolve('${escHtml(t.id)}')" title="Mark as resolved">✔ Resolve</button>`:`<span style="font-size:11px;color:var(--accent-green);">✓ Done</span>`}
+          <button class="btn btn-sm btn-edit" onclick="openModal('${escHtml(t.id)}')" title="View and edit ticket">✎ Edit</button>
         </div>
       </td>
     </tr>`).join('');
@@ -1499,21 +1530,10 @@ function buildZip(files){const enc=new TextEncoder();const lhs=[],cds=[];let off
 
 // ── INIT ─────────────────────────────────────────────────────────────
 (function init() {
-  const url = getGasUrl();
-  const configured = !!url;
-  setSyncState('admin-sync-dot','admin-sync-text', configured?'syncing':'error', configured?'Connecting…':'GAS URL not configured');
-  setSyncState('submit-sync-dot','submit-sync-text', configured?'syncing':'error', configured?'Connecting…':'GAS URL not configured');
-  // Show config warning on login page
-  const banner = document.getElementById('config-warning');
-  if (banner && !configured) banner.classList.add('show');
-
-  if (!configured) {
-    console.warn(
-      '%c[HelpDesk Pro] ACTION REQUIRED',
-      'color:#f5a623;font-weight:bold;font-size:14px;',
-      '\n\nOpen index.html and replace YOUR_APPS_SCRIPT_URL_HERE in the CONFIG object with your Google Apps Script Web App URL.\n\nExample:\n  GAS_URL: \'https://script.google.com/macros/s/AKfycb.../exec\''
-    );
-  }
+  // GAS URL is globally configured in CONFIG above — no manual setup needed
+  const configured = !!getGasUrl();
+  setSyncState('admin-sync-dot','admin-sync-text', configured ? 'syncing' : 'error', configured ? 'Connecting…' : 'GAS URL not set');
+  setSyncState('submit-sync-dot','submit-sync-text', configured ? 'syncing' : 'error', configured ? 'Connecting…' : 'GAS URL not set');
 })();
 </script>
 </body>
