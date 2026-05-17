@@ -665,6 +665,22 @@
   /* ═══════════════════════════════════════
      ANIMATIONS
   ═══════════════════════════════════════ */
+  /* Config warning banner */
+  .config-warning {
+    display: none;
+    background: rgba(245,166,35,0.1);
+    border: 1px solid rgba(245,166,35,0.35);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 12.5px;
+    color: #c9933a;
+    line-height: 1.6;
+    text-align: center;
+  }
+  .config-warning strong { color: var(--accent-amber); display: block; margin-bottom: 2px; }
+  .config-warning.show { display: block; }
+
   @keyframes fadeSlideUp {
     from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }
@@ -759,6 +775,10 @@
     <div class="login-card">
       <h2>Welcome back</h2>
       <p class="subtitle">Enter your credentials to continue</p>
+      <div class="config-warning" id="config-warning">
+        <strong>⚙️ System Not Connected</strong>
+        Open <code style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent-amber);">index.html</code> and set <code style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent-amber);">CONFIG.GAS_URL</code> to your Google Apps Script URL.
+      </div>
       <div class="login-error" id="login-error">
         ⚠ Incorrect username or password. Please try again.
       </div>
@@ -1015,30 +1035,44 @@
 <div class="toast-container" id="toast-container"></div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════
-// HELPDESK PRO — REAL-TIME MULTI-DEVICE ENGINE
-// Architecture: Google Sheets is the single source of truth.
-// Polling every 4s keeps all devices in sync automatically.
-// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════
+// HELPDESK PRO — GLOBAL CONFIGURATION
+// ┌─────────────────────────────────────────────────────────────────────┐
+// │  PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW (line 7)         │
+// │  This is the ONLY place you need to set it. Works on all devices.  │
+// └─────────────────────────────────────────────────────────────────────┘
+// ═══════════════════════════════════════════════════════════════════════
+const CONFIG = {
+  GAS_URL : 'https://script.google.com/macros/s/AKfycbxo7uxOvkmW2PHzJkaqoRj-QfAohc4H7MocunPQg3Q8urwUurhGFfxv0ZpNsDaXGxSX/exec',  // ← Replace this with your Web App URL
+  POLL_MS : 4000,                          // Polling interval in ms (4 seconds)
+  VERSION : '2.1.0'
+};
+// ═══════════════════════════════════════════════════════════════════════
 
-// ── CREDENTIALS ─────────────────────────────────────────────
+// ── CREDENTIALS ─────────────────────────────────────────────────────
 const USERS = {
   user: { password: 'password2026', role: 'user', display: 'End User' },
   peer: { password: 'password2026', role: 'admin', display: 'peer' }
 };
 
-// ── STATE ────────────────────────────────────────────────────
-let tickets        = [];           // Live data from Sheets
+// ── RUNTIME STATE ───────────────────────────────────────────────────
+let tickets        = [];
 let currentUser    = null;
 let activeModalTicketId = null;
-let GAS_URL        = localStorage.getItem('hd_gas_url') || '';
-let pollTimer      = null;         // setInterval handle
-let lastTicketHash = '';           // Detect changes without re-rendering if unchanged
-let isFetching     = false;        // Prevent overlapping fetches
-let pendingWrite   = false;        // Block polls while writing
-const POLL_MS      = 4000;         // 4-second polling interval
+let pollTimer      = null;
+let lastTicketHash = '';
+let isFetching     = false;
+let pendingWrite   = false;
 
-// ── DATE / FORMAT UTILS ──────────────────────────────────────
+// Derive the active GAS URL — config takes priority, localStorage is fallback
+// for any legacy saved URL (admin override during testing)
+function getGasUrl() {
+  const cfg = CONFIG.GAS_URL.trim();
+  if (cfg && cfg !== 'YOUR_APPS_SCRIPT_URL_HERE') return cfg;
+  return localStorage.getItem('hd_gas_url') || '';  // legacy fallback
+}
+
+// ── DATE HELPERS ─────────────────────────────────────────────────────
 function formatDatePH(date) {
   const d = typeof date === 'string' ? new Date(date) : date;
   const ph = new Date(d.getTime() + 8 * 3600 * 1000);
@@ -1069,66 +1103,63 @@ function toast(msg, type='info') {
 function setSyncState(dotId, textId, state, msg) {
   const dot = document.getElementById(dotId), txt = document.getElementById(textId);
   if (!dot||!txt) return;
-  dot.className = 'sync-dot' + (state==='syncing'?' syncing':state==='error'?' error':'');
+  dot.className = 'sync-dot'+(state==='syncing'?' syncing':state==='error'?' error':'');
   txt.textContent = msg;
 }
 function hashTickets(arr) {
-  return arr.map(t => t.id + t.status + (t.assignedAdmin||'') + (t.resolutionDetails||'') + (t.dateResolved||'')).join('|');
+  return arr.map(t => t.id+t.status+(t.assignedAdmin||'')+(t.resolutionDetails||'')+(t.dateResolved||'')).join('|');
 }
 
-// ── GOOGLE APPS SCRIPT API ───────────────────────────────────
-
-// POST — write a ticket action to Sheets
+// ── GAS: POST (write) ────────────────────────────────────────────────
 async function gasPost(action, ticket) {
-  if (!GAS_URL) return false;
+  const url = getGasUrl();
+  if (!url) return false;
   try {
-    await fetch(GAS_URL, {
+    await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action, ticket }),
-      mode: 'no-cors'   // GAS doesn't send CORS headers, but request goes through
+      mode: 'no-cors'
     });
     return true;
   } catch(e) { return false; }
 }
 
-// GET — fetch all tickets from Sheets via JSONP workaround
-// GAS doGet must return JSONP: callback({"tickets":[...]})
-// We use a dynamic <script> tag so CORS isn't an issue on GitHub Pages
-let _gasCallbackResolve = null;
-let _gasCallbackTimer   = null;
+// ── GAS: GET via JSONP (bypasses CORS for GitHub Pages) ──────────────
+let _resolve = null, _timer = null;
 window._gasCallback = function(data) {
-  if (_gasCallbackTimer) clearTimeout(_gasCallbackTimer);
-  if (_gasCallbackResolve) { _gasCallbackResolve(data); _gasCallbackResolve = null; }
+  if (_timer) clearTimeout(_timer);
+  if (_resolve) { _resolve(data); _resolve = null; }
 };
 
 function gasFetch() {
-  return new Promise((resolve) => {
-    if (!GAS_URL) { resolve(null); return; }
-    // Remove previous script tag
-    const old = document.getElementById('_gas_script');
-    if (old) old.remove();
-    _gasCallbackResolve = resolve;
-    // Timeout if no response in 8s
-    _gasCallbackTimer = setTimeout(() => {
-      _gasCallbackResolve = null;
-      resolve(null);
-    }, 8000);
+  return new Promise(resolve => {
+    const url = getGasUrl();
+    if (!url) { resolve(null); return; }
+    const old = document.getElementById('_gs'); if (old) old.remove();
+    _resolve = resolve;
+    _timer = setTimeout(() => { _resolve = null; resolve(null); }, 8000);
     const s = document.createElement('script');
-    s.id = '_gas_script';
-    s.src = GAS_URL + '?callback=_gasCallback&_=' + Date.now();
-    s.onerror = () => { if(_gasCallbackResolve){_gasCallbackResolve(null);_gasCallbackResolve=null;} };
+    s.id = '_gs';
+    s.src = url + '?callback=_gasCallback&_=' + Date.now();
+    s.onerror = () => { if(_resolve){_resolve(null);_resolve=null;} };
     document.head.appendChild(s);
   });
 }
 
-// ── POLL ENGINE ──────────────────────────────────────────────
+// ── POLL ENGINE ──────────────────────────────────────────────────────
 function startPolling() {
   stopPolling();
-  if (!GAS_URL) return;
-  // Immediate first fetch
+  const url = getGasUrl();
+  if (!url) {
+    // No URL configured — show warning in sync indicators
+    setSyncState('admin-sync-dot','admin-sync-text','error','GAS URL not set in CONFIG');
+    setSyncState('submit-sync-dot','submit-sync-text','error','GAS URL not set');
+    console.warn('[HelpDesk Pro] CONFIG.GAS_URL is not set. Open ticketing-system.html and replace YOUR_APPS_SCRIPT_URL_HERE with your Web App URL.');
+    return;
+  }
   pollOnce();
-  pollTimer = setInterval(pollOnce, POLL_MS);
+  pollTimer = setInterval(pollOnce, CONFIG.POLL_MS);
 }
 
 function stopPolling() {
@@ -1136,17 +1167,18 @@ function stopPolling() {
 }
 
 async function pollOnce() {
-  if (isFetching || pendingWrite || !GAS_URL || !currentUser) return;
+  if (isFetching || pendingWrite || !currentUser) return;
+  const url = getGasUrl();
+  if (!url) return;
   isFetching = true;
 
-  // Show pulsing indicator
-  const role = currentUser.role;
-  const dotId  = role === 'admin' ? 'admin-sync-dot'  : 'submit-sync-dot';
-  const txtId  = role === 'admin' ? 'admin-sync-text' : 'submit-sync-text';
+  const role  = currentUser.role;
+  const dotId = role === 'admin' ? 'admin-sync-dot'  : 'submit-sync-dot';
+  const txtId = role === 'admin' ? 'admin-sync-text' : 'submit-sync-text';
 
   try {
     const data = await gasFetch();
-    if (!data || !Array.isArray(data.tickets)) throw new Error('bad response');
+    if (!data || !Array.isArray(data.tickets)) throw new Error('Invalid response');
 
     const newHash = hashTickets(data.tickets);
     const changed = newHash !== lastTicketHash;
@@ -1158,30 +1190,16 @@ async function pollOnce() {
       else                  { loadTickets(); updateUserStats(); }
     }
 
-    // Update last-sync timestamp in navbar
-    const now = formatDatePH(new Date());
-    setSyncState(dotId, txtId, 'ok', `Synced ${now}`);
+    setSyncState(dotId, txtId, 'ok', `Live · ${formatDatePH(new Date()).split(' ')[1]}`);
 
   } catch(e) {
-    setSyncState(dotId, txtId, 'error', 'Sync error — retrying');
+    setSyncState(dotId, txtId, 'error', 'Retrying…');
   } finally {
     isFetching = false;
   }
 }
 
-// ── GAS URL MANAGEMENT ───────────────────────────────────────
-function saveGASUrl() {
-  const url = document.getElementById('gas-url-input').value.trim();
-  if (!url.startsWith('https://')) { toast('Enter a valid Apps Script URL.', 'error'); return; }
-  GAS_URL = url;
-  localStorage.setItem('hd_gas_url', GAS_URL);
-  toast('URL saved! Connecting…', 'success');
-  document.getElementById('sheets-setup-notice').style.display = 'none';
-  if (currentUser) startPolling();
-}
-function dismissSetup() { document.getElementById('sheets-setup-notice').style.display = 'none'; }
-
-// ── AUTH ─────────────────────────────────────────────────────
+// ── AUTH ─────────────────────────────────────────────────────────────
 function handleLogin() {
   const u   = document.getElementById('login-username').value.trim();
   const p   = document.getElementById('login-password').value;
@@ -1189,18 +1207,10 @@ function handleLogin() {
   if (!USERS[u] || USERS[u].password !== p) { err.style.display = 'block'; return; }
   err.style.display = 'none';
   currentUser = { username: u, ...USERS[u] };
-
   showPage(currentUser.role === 'admin' ? 'admin-page' : 'user-page');
-
   if (currentUser.role === 'user') {
     document.getElementById('user-display').textContent = currentUser.display;
     document.getElementById('user-avatar').textContent  = u[0].toUpperCase();
-    if (!GAS_URL) setSyncState('submit-sync-dot','submit-sync-text','error','Setup GAS URL');
-  } else {
-    if (GAS_URL) {
-      document.getElementById('gas-url-input').value = GAS_URL;
-      document.getElementById('sheets-setup-notice').style.display = 'none';
-    }
   }
   startPolling();
 }
@@ -1217,7 +1227,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && document.getElementById('login-page').classList.contains('active')) handleLogin();
 });
 
-// ── PAGE / TAB ROUTING ───────────────────────────────────────
+// ── PAGE / TAB ROUTING ───────────────────────────────────────────────
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -1228,15 +1238,19 @@ function switchTab(tab) {
   document.getElementById('tab-mytickets').classList.toggle('active', tab==='mytickets');
 }
 
-// ── SUBMIT TICKET ────────────────────────────────────────────
+// ── SUBMIT TICKET ────────────────────────────────────────────────────
 async function submitTicket() {
   const name  = document.getElementById('f-name').value.trim();
   const issue = document.getElementById('f-issue').value.trim();
   const desc  = document.getElementById('f-desc').value.trim();
   const site  = document.getElementById('f-site').value;
+  if (!name||!issue||!desc||!site) { toast('Please fill in all fields.','error'); return; }
 
-  if (!name||!issue||!desc||!site) { toast('Please fill in all fields.', 'error'); return; }
-  if (!GAS_URL) { toast('Google Sheets URL not configured. Contact admin.', 'error'); return; }
+  const url = getGasUrl();
+  if (!url) {
+    toast('Backend not configured. Contact your administrator.','error');
+    return;
+  }
 
   const ticket = {
     id: genTicketId(), name, issue, description: desc, site,
@@ -1245,7 +1259,7 @@ async function submitTicket() {
     submittedBy: currentUser.username
   };
 
-  // Optimistic UI update
+  // Optimistic UI
   tickets.unshift(ticket);
   document.getElementById('f-name').value = '';
   document.getElementById('f-issue').value = '';
@@ -1255,30 +1269,29 @@ async function submitTicket() {
   succ.classList.add('show'); setTimeout(() => succ.classList.remove('show'), 5000);
   updateUserStats();
 
-  // Write to Sheets
   pendingWrite = true;
   setSyncState('submit-sync-dot','submit-sync-text','syncing','Submitting…');
   const ok = await gasPost('create', ticket);
   pendingWrite = false;
+
   if (ok) {
-    toast('Ticket submitted and synced!', 'success');
-    setSyncState('submit-sync-dot','submit-sync-text','ok','Synced to Sheets');
-    lastTicketHash = ''; // Force re-fetch on next poll
+    toast('Ticket submitted and synced!','success');
+    lastTicketHash = '';
   } else {
-    toast('Submitted locally — sync pending.', 'info');
+    toast('Submitted locally — sync pending.','info');
     setSyncState('submit-sync-dot','submit-sync-text','error','Sync pending');
   }
 }
 
-// ── USER: MY TICKETS ─────────────────────────────────────────
+// ── USER: MY TICKETS ─────────────────────────────────────────────────
 function loadTickets() {
-  const container  = document.getElementById('user-tickets-list');
-  const myTickets  = tickets.filter(t => t.submittedBy === currentUser.username);
-  if (!myTickets.length) {
+  const container = document.getElementById('user-tickets-list');
+  const mine = tickets.filter(t => t.submittedBy === currentUser.username);
+  if (!mine.length) {
     container.innerHTML = `<div class="empty-state"><div class="icon">🎫</div><h3>No tickets yet</h3><p>Submit a ticket and it will appear here.</p></div>`;
     return;
   }
-  container.innerHTML = myTickets.map(t => `
+  container.innerHTML = mine.map(t => `
     <div class="ticket-item">
       <div class="ticket-id-badge">${escHtml(t.id)}</div>
       <div class="ticket-info">
@@ -1305,7 +1318,7 @@ function updateUserStats() {
   document.getElementById('stat-u-resolved').textContent = my.filter(t=>t.status==='Resolved').length;
 }
 
-// ── ADMIN: TABLE + STATS ─────────────────────────────────────
+// ── ADMIN: TABLE + STATS ─────────────────────────────────────────────
 function loadAdminTickets() { pollOnce(); }
 
 function updateAdminStats() {
@@ -1354,16 +1367,16 @@ function renderAdminTable() {
   updateAdminStats();
 }
 
-// ── ADMIN QUICK ACTIONS ──────────────────────────────────────
+// ── ADMIN QUICK ACTIONS ──────────────────────────────────────────────
 async function quickAccept(id) {
   const t = tickets.find(x=>x.id===id); if(!t) return;
   t.status = 'Accepted'; if(!t.assignedAdmin) t.assignedAdmin = 'peer';
   renderAdminTable();
-  toast('Ticket accepted!', 'success');
   pendingWrite = true;
   await gasPost('update', t);
   pendingWrite = false;
   lastTicketHash = '';
+  toast('Ticket accepted!','success');
 }
 
 async function quickResolve(id) {
@@ -1371,14 +1384,14 @@ async function quickResolve(id) {
   t.status = 'Resolved'; t.dateResolved = formatDatePH(new Date());
   if(!t.assignedAdmin) t.assignedAdmin = 'peer';
   renderAdminTable();
-  toast('Ticket resolved!', 'success');
   pendingWrite = true;
   await gasPost('update', t);
   pendingWrite = false;
   lastTicketHash = '';
+  toast('Ticket resolved!','success');
 }
 
-// ── MODAL ────────────────────────────────────────────────────
+// ── MODAL ────────────────────────────────────────────────────────────
 function openModal(id) {
   const t = tickets.find(x=>x.id===id); if(!t) return;
   activeModalTicketId = id;
@@ -1415,18 +1428,17 @@ async function saveTicketUpdate() {
   else if(newStatus!=='Resolved') t.dateResolved = '';
   closeModal();
   renderAdminTable();
-  toast('Ticket updated!', 'success');
+  toast('Ticket updated!','success');
   pendingWrite = true;
   await gasPost('update', t);
   pendingWrite = false;
   lastTicketHash = '';
 }
-
 document.getElementById('update-modal').addEventListener('click', function(e) {
   if(e.target===this) closeModal();
 });
 
-// ── EXPORT ───────────────────────────────────────────────────
+// ── EXPORT ───────────────────────────────────────────────────────────
 const EXPORT_HEADERS = [
   'Ticket ID','Name of User','Issue','Description','Site',
   'Date Submitted','Ticket Status','Assigned Admin','Resolution Details','Date Resolved'
@@ -1441,15 +1453,15 @@ function toggleExportMenu() {
 }
 document.addEventListener('click', function(e) {
   const w = document.getElementById('export-dropdown-wrap');
-  if(w&&!w.contains(e.target)) { const m=document.getElementById('export-menu'); if(m) m.style.display='none'; }
+  if(w&&!w.contains(e.target)){const m=document.getElementById('export-menu');if(m)m.style.display='none';}
 });
 function exportCSV() {
   document.getElementById('export-menu').style.display='none';
   if(!tickets.length){toast('No tickets to export.','error');return;}
-  const esc = v => { const s=String(v); return s.includes(',')||s.includes('"')||s.includes('\n')?`"${s.replace(/"/g,'""')}"`:s; };
-  const rows = [EXPORT_HEADERS,...tickets.map(ticketToRow)];
-  const csv  = rows.map(r=>r.map(esc).join(',')).join('\r\n');
-  downloadFile(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}), `HelpDesk_${getExportDate()}.csv`);
+  const esc=v=>{const s=String(v);return s.includes(',')||s.includes('"')||s.includes('\n')?`"${s.replace(/"/g,'""')}"`:s;};
+  const rows=[EXPORT_HEADERS,...tickets.map(ticketToRow)];
+  const csv=rows.map(r=>r.map(esc).join(',')).join('\r\n');
+  downloadFile(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}),`HelpDesk_${getExportDate()}.csv`);
   toast('Exported as CSV!','success');
 }
 function exportXLSX() {
@@ -1465,64 +1477,44 @@ function exportXLSX() {
     }).join('');
     return `<row r="${ri+1}">${cells}</row>`;
   }).join('');
-  const sheetXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${xmlRows}</sheetData></worksheet>`;
-  const stylesXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts><font><b/><sz val="11"/></font><font><sz val="11"/></font></fonts><fills><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"><alignment horizontal="center"/></xf></cellXfs></styleSheet>`;
-  const workbookXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Tickets" sheetId="1" r:id="rId1"/></sheets></workbook>`;
-  const relsXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>`;
+  const sXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${xmlRows}</sheetData></worksheet>`;
+  const stXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts><font><b/><sz val="11"/></font><font><sz val="11"/></font></fonts><fills><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"><alignment horizontal="center"/></xf></cellXfs></styleSheet>`;
+  const wXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Tickets" sheetId="1" r:id="rId1"/></sheets></workbook>`;
+  const rXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>`;
   const ctXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`;
   const zip=buildZip([
     {name:'[Content_Types].xml',data:ctXml},
     {name:'_rels/.rels',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
-    {name:'xl/workbook.xml',data:workbookXml},
-    {name:'xl/_rels/workbook.xml.rels',data:relsXml},
-    {name:'xl/worksheets/sheet1.xml',data:sheetXml},
-    {name:'xl/styles.xml',data:stylesXml}
+    {name:'xl/workbook.xml',data:wXml},
+    {name:'xl/_rels/workbook.xml.rels',data:rXml},
+    {name:'xl/worksheets/sheet1.xml',data:sXml},
+    {name:'xl/styles.xml',data:stXml}
   ]);
-  downloadFile(new Blob([zip],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), `HelpDesk_${getExportDate()}.xlsx`);
+  downloadFile(new Blob([zip],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),`HelpDesk_${getExportDate()}.xlsx`);
   toast('Exported as Excel!','success');
 }
-function getExportDate() {
-  const d=new Date(),p=n=>String(n).padStart(2,'0');
-  return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}`;
-}
-function downloadFile(blob,filename) {
-  const url=URL.createObjectURL(blob),a=document.createElement('a');
-  a.href=url; a.download=filename; document.body.appendChild(a); a.click();
-  document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url),1000);
-}
-function buildZip(files) {
-  const enc=new TextEncoder();
-  const lhs=[],cds=[];
-  let offset=0;
-  function crc32(data){let c=-1;const t=new Uint32Array(256);for(let i=0;i<256;i++){let x=i;for(let j=0;j<8;j++)x=(x&1)?(0xEDB88320^(x>>>1)):(x>>>1);t[i]=x;}for(let i=0;i<data.length;i++)c=t[(c^data[i])&0xFF]^(c>>>8);return(c^-1)>>>0;}
-  function u16(n){const b=new Uint8Array(2);new DataView(b.buffer).setUint16(0,n,true);return b;}
-  function u32(n){const b=new Uint8Array(4);new DataView(b.buffer).setUint32(0,n,true);return b;}
-  for(const file of files){
-    const nb=enc.encode(file.name),db=enc.encode(file.data),crc=crc32(db),sz=db.length;
-    const lh=new Uint8Array([0x50,0x4B,0x03,0x04,...u16(20),...u16(0),...u16(0),...u16(0),...u16(0),...u32(crc),...u32(sz),...u32(sz),...u16(nb.length),...u16(0),...nb]);
-    lhs.push({lh,data:db,nb,crc,sz,offset});
-    const cd=new Uint8Array([0x50,0x4B,0x01,0x02,...u16(20),...u16(20),...u16(0),...u16(0),...u16(0),...u16(0),...u16(0),...u32(crc),...u32(sz),...u32(sz),...u16(nb.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(offset),...nb]);
-    cds.push(cd); offset+=lh.length+sz;
-  }
-  const cdOff=offset,cdSz=cds.reduce((s,c)=>s+c.length,0);
-  const e2=enc.encode('HelpDesk Export');
-  const eocd=new Uint8Array([0x50,0x4B,0x05,0x06,...u16(0),...u16(0),...u16(files.length),...u16(files.length),...u32(cdSz),...u32(cdOff),...u16(e2.length),...e2]);
-  const parts=[];
-  for(const{lh,data}of lhs){parts.push(lh);parts.push(data);}
-  for(const cd of cds)parts.push(cd);
-  parts.push(eocd);
-  const total=parts.reduce((s,p)=>s+p.length,0),result=new Uint8Array(total);
-  let pos=0; for(const p of parts){result.set(p,pos);pos+=p.length;}
-  return result;
-}
+function getExportDate(){const d=new Date(),p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}`;}
+function downloadFile(blob,filename){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(url),1000);}
+function buildZip(files){const enc=new TextEncoder();const lhs=[],cds=[];let offset=0;function crc32(data){let c=-1;const t=new Uint32Array(256);for(let i=0;i<256;i++){let x=i;for(let j=0;j<8;j++)x=(x&1)?(0xEDB88320^(x>>>1)):(x>>>1);t[i]=x;}for(let i=0;i<data.length;i++)c=t[(c^data[i])&0xFF]^(c>>>8);return(c^-1)>>>0;}function u16(n){const b=new Uint8Array(2);new DataView(b.buffer).setUint16(0,n,true);return b;}function u32(n){const b=new Uint8Array(4);new DataView(b.buffer).setUint32(0,n,true);return b;}for(const file of files){const nb=enc.encode(file.name),db=enc.encode(file.data),crc=crc32(db),sz=db.length;const lh=new Uint8Array([0x50,0x4B,0x03,0x04,...u16(20),...u16(0),...u16(0),...u16(0),...u16(0),...u32(crc),...u32(sz),...u32(sz),...u16(nb.length),...u16(0),...nb]);lhs.push({lh,data:db,nb,crc,sz,offset});const cd=new Uint8Array([0x50,0x4B,0x01,0x02,...u16(20),...u16(20),...u16(0),...u16(0),...u16(0),...u16(0),...u16(0),...u32(crc),...u32(sz),...u32(sz),...u16(nb.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(offset),...nb]);cds.push(cd);offset+=lh.length+sz;}const cdOff=offset,cdSz=cds.reduce((s,c)=>s+c.length,0);const e2=enc.encode('HelpDesk Export');const eocd=new Uint8Array([0x50,0x4B,0x05,0x06,...u16(0),...u16(0),...u16(files.length),...u16(files.length),...u32(cdSz),...u32(cdOff),...u16(e2.length),...e2]);const parts=[];for(const{lh,data}of lhs){parts.push(lh);parts.push(data);}for(const cd of cds)parts.push(cd);parts.push(eocd);const total=parts.reduce((s,p)=>s+p.length,0),result=new Uint8Array(total);let pos=0;for(const p of parts){result.set(p,pos);pos+=p.length;}return result;}
 
-// ── INIT ─────────────────────────────────────────────────────
-if (GAS_URL) {
-  const inp = document.getElementById('gas-url-input');
-  if (inp) inp.value = GAS_URL;
-}
-setSyncState('admin-sync-dot','admin-sync-text','error', GAS_URL?'Connecting…':'No Sheets URL');
-setSyncState('submit-sync-dot','submit-sync-text','error', GAS_URL?'Connecting…':'Setup required');
+// ── INIT ─────────────────────────────────────────────────────────────
+(function init() {
+  const url = getGasUrl();
+  const configured = !!url;
+  setSyncState('admin-sync-dot','admin-sync-text', configured?'syncing':'error', configured?'Connecting…':'GAS URL not configured');
+  setSyncState('submit-sync-dot','submit-sync-text', configured?'syncing':'error', configured?'Connecting…':'GAS URL not configured');
+  // Show config warning on login page
+  const banner = document.getElementById('config-warning');
+  if (banner && !configured) banner.classList.add('show');
+
+  if (!configured) {
+    console.warn(
+      '%c[HelpDesk Pro] ACTION REQUIRED',
+      'color:#f5a623;font-weight:bold;font-size:14px;',
+      '\n\nOpen index.html and replace YOUR_APPS_SCRIPT_URL_HERE in the CONFIG object with your Google Apps Script Web App URL.\n\nExample:\n  GAS_URL: \'https://script.google.com/macros/s/AKfycb.../exec\''
+    );
+  }
+})();
 </script>
 </body>
 </html>
