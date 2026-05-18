@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HelpDesk Pro — Ticketing System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #12151c;
+    --surface2: #1a1f2a;
+    --surface3: #222837;
+    --border: #2a3045;
+    --border2: #3a4560;
+    --accent: #4f8aff;
+    --accent2: #7c5cfc;
+    --accent-green: #22d3a0;
+    --accent-amber: #f5a623;
+    --accent-red: #ff5c5c;
+    --accent-blue-light: #a8c8ff;
+    --text: #e8edf8;
+    --text2: #8a93aa;
+    --text3: #5a6478;
+    --glow: rgba(79,138,255,0.15);
+    --glow2: rgba(124,92,252,0.12);
+    --shadow: 0 8px 32px rgba(0,0,0,0.4);
+    --radius: 12px;
+    --radius2: 8px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ═══════════════════════════════════════
+     BACKGROUND MESH
+  ═══════════════════════════════════════ */
+  .bg-mesh {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 60% at 10% 20%, rgba(79,138,255,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 90% 80%, rgba(124,92,252,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 50% 50%, rgba(34,211,160,0.03) 0%, transparent 70%);
+  }
+  .bg-grid {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(79,138,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,138,255,0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  /* ═══════════════════════════════════════
+     PAGES
+  ═══════════════════════════════════════ */
+  .page { display: none; position: relative; z-index: 1; min-height: 100vh; }
+  .page.active { display: flex; flex-direction: column; }
+
+  /* ═══════════════════════════════════════
+     LOGIN PAGE
+  ═══════════════════════════════════════ */
+  #login-page {
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .login-container {
+    width: 100%;
+    max-width: 440px;
+    animation: fadeSlideUp 0.6s ease both;
+  }
+
+  .login-logo {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .login-logo .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    padding: 10px 20px;
+    border-radius: 100px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: white;
+    margin-bottom: 16px;
+  }
+  .login-logo .badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: white;
+    border-radius: 50%;
+    opacity: 0.8;
+  }
+  .login-logo h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--text) 40%, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .login-logo p {
+    color: var(--text2);
+    font-size: 14px;
+    margin-top: 6px;
+  }
+
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px;
+    box-shadow: var(--shadow), 0 0 0 1px rgba(255,255,255,0.02) inset;
+  }
+
+  .login-card h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+  .login-card .subtitle {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 28px;
+  }
+
+  .form-group {
+    margin-bottom: 18px;
+  }
+  .form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 8px;
+    font-family: 'DM Mono', monospace;
+  }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius2);
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+  .form-group input::placeholder { color: var(--text3); }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(79,138,255,0.12);
+  }
+  .form-group select option { background: var(--surface2); }
+  .form-group textarea { resize: vertical; min-height: 90px; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 20px;
+    border-radius: var(--radius2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: white;
+    width: 100%;
+    justify-content: center;
+    padding: 14px;
+    font-size: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(79,138,255,0.3);
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(79,138,255,0.4);
+  }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-sm {
+    padding: 6px 14px;
+    font-size: 12px;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+  .btn-accept { background: rgba(34,211,160,0.15); color: var(--accent-green); border: 1px solid rgba(34,211,160,0.3); }
+  .btn-accept:hover { background: rgba(34,211,160,0.25); }
+  .btn-resolve { background: rgba(79,138,255,0.15); color: var(--accent); border: 1px solid rgba(79,138,255,0.3); }
+  .btn-resolve:hover { background: rgba(79,138,255,0.25); }
+  .btn-edit { background: rgba(245,166,35,0.15); color: var(--accent-amber); border: 1px solid rgba(245,166,35,0.3); }
+  .btn-edit:hover { background: rgba(245,166,35,0.25); }
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text2);
+    font-size: 13px;
+  }
+  .btn-outline:hover { border-color: var(--border2); color: var(--text); }
+  .btn-danger { background: rgba(255,92,92,0.15); color: var(--accent-red); border: 1px solid rgba(255,92,92,0.3); }
+  .btn-danger:hover { background: rgba(255,92,92,0.25); }
+
+  .login-error {
+    background: rgba(255,92,92,0.1);
+    border: 1px solid rgba(255,92,92,0.3);
+    border-radius: var(--radius2);
+    padding: 10px 14px;
+    color: var(--accent-red);
+    font-size: 13px;
+    margin-bottom: 18px;
+    display: none;
+  }
+
+  /* ═══════════════════════════════════════
+     NAVBAR
+  ═══════════════════════════════════════ */
+  .navbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,12,16,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .navbar-brand {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: -0.5px;
+  }
+  .navbar-brand .dot {
+    width: 8px; height: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent);
+  }
+  .navbar-right {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .user-chip {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 6px 14px 6px 8px;
+    font-size: 13px;
+  }
+  .user-chip .avatar {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+  }
+  .avatar-user { background: linear-gradient(135deg, var(--accent-green), #0ea5e9); }
+  .avatar-admin { background: linear-gradient(135deg, var(--accent), var(--accent2)); }
+  .role-tag {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+
+  /* ═══════════════════════════════════════
+     DASHBOARD LAYOUT
+  ═══════════════════════════════════════ */
+  .dashboard-content {
+    padding: 32px 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    flex: 1;
+  }
+
+  .page-header {
+    margin-bottom: 32px;
+  }
+  .page-header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+  }
+  .page-header p {
+    color: var(--text2);
+    font-size: 14px;
+  }
+
+  /* ═══════════════════════════════════════
+     STATS ROW
+  ═══════════════════════════════════════ */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+    border-top: 2px solid var(--accent);
+  }
+  .stat-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: inherit;
+    display: none;
+  }
+  .stat-card .num {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-card .lbl {
+    font-size: 12px;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: 'DM Mono', monospace;
+  }
+  .num-blue { color: var(--accent); }
+  .num-green { color: var(--accent-green); }
+  .num-amber { color: var(--accent-amber); }
+  .num-red { color: var(--accent-red); }
+
+  /* ═══════════════════════════════════════
+     CARD / PANEL
+  ═══════════════════════════════════════ */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .card-header h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  /* ═══════════════════════════════════════
+     SUBMIT TICKET FORM (END USER)
+  ═══════════════════════════════════════ */
+  .ticket-form {
+    padding: 24px;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .form-grid .full { grid-column: 1/-1; }
+
+  .submit-success {
+    display: none;
+    background: rgba(34,211,160,0.08);
+    border: 1px solid rgba(34,211,160,0.25);
+    border-radius: var(--radius2);
+    padding: 16px 20px;
+    color: var(--accent-green);
+    margin-bottom: 20px;
+    font-size: 14px;
+    align-items: center;
+    gap: 10px;
+  }
+  .submit-success.show { display: flex; }
+
+  /* ═══════════════════════════════════════
+     TICKETS LIST (END USER)
+  ═══════════════════════════════════════ */
+  .tickets-list {
+    padding: 16px 24px 24px;
+  }
+  .ticket-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius2);
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 12px 16px;
+    align-items: start;
+    transition: border-color 0.2s;
+  }
+  .ticket-item:hover { border-color: var(--border2); }
+  .ticket-id-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(79,138,255,0.1);
+    border: 1px solid rgba(79,138,255,0.2);
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+  .ticket-info h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .ticket-info .meta {
+    font-size: 12px;
+    color: var(--text2);
+    display: flex; gap: 12px; flex-wrap: wrap;
+  }
+  .ticket-info .meta span { display: flex; align-items: center; gap: 4px; }
+
+  /* STATUS BADGES */
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+  .status-badge::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+  }
+  .s-open { background: rgba(245,166,35,0.1); color: var(--accent-amber); border: 1px solid rgba(245,166,35,0.25); }
+  .s-open::before { background: var(--accent-amber); }
+  .s-accepted { background: rgba(79,138,255,0.1); color: var(--accent); border: 1px solid rgba(79,138,255,0.25); }
+  .s-accepted::before { background: var(--accent); box-shadow: 0 0 4px var(--accent); animation: pulse 1.5s infinite; }
+  .s-resolved { background: rgba(34,211,160,0.1); color: var(--accent-green); border: 1px solid rgba(34,211,160,0.25); }
+  .s-resolved::before { background: var(--accent-green); }
+  .s-closed { background: rgba(90,100,120,0.1); color: var(--text3); border: 1px solid rgba(90,100,120,0.2); }
+  .s-closed::before { background: var(--text3); }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ═══════════════════════════════════════
+     ADMIN TABLE
+  ═══════════════════════════════════════ */
+  .table-wrap {
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead th {
+    text-align: left;
+    padding: 10px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    background: var(--surface2);
+  }
+  thead th:first-child { border-radius: 0; }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  tbody tr:hover { background: var(--surface2); }
+  tbody tr:last-child { border-bottom: none; }
+  td {
+    padding: 14px 16px;
+    vertical-align: top;
+    color: var(--text);
+  }
+  td .cell-label {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 2px;
+  }
+  .actions-cell { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .actions-cell .btn-sm { font-size: 11px; padding: 5px 10px; }
+
+  /* ═══════════════════════════════════════
+     MODAL
+  ═══════════════════════════════════════ */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+    animation: fadeSlideUp 0.3s ease both;
+  }
+  .modal h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .modal .modal-sub {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text3);
+    margin: 16px 0 10px;
+  }
+  .modal-footer {
+    display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px;
+  }
+
+  /* ═══════════════════════════════════════
+     SEARCH / FILTER BAR
+  ═══════════════════════════════════════ */
+  .filter-bar {
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  }
+  .filter-bar input, .filter-bar select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius2);
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .filter-bar input:focus, .filter-bar select:focus { border-color: var(--accent); }
+  .filter-bar input { min-width: 200px; }
+
+  /* ═══════════════════════════════════════
+     EMPTY STATE
+  ═══════════════════════════════════════ */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text3);
+  }
+  .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state h3 { font-size: 16px; color: var(--text2); margin-bottom: 6px; }
+  .empty-state p { font-size: 13px; }
+
+  /* ═══════════════════════════════════════
+     TOAST
+  ═══════════════════════════════════════ */
+  .toast-container {
+    position: fixed; bottom: 24px; right: 24px; z-index: 300;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .toast {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.7s both;
+    max-width: 300px;
+  }
+  .toast-success { border-color: rgba(34,211,160,0.3); color: var(--accent-green); }
+  .toast-error { border-color: rgba(255,92,92,0.3); color: var(--accent-red); }
+  .toast-info { border-color: rgba(79,138,255,0.3); color: var(--accent); }
+
+  /* ═══════════════════════════════════════
+     TICKET DETAIL VIEW
+  ═══════════════════════════════════════ */
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .detail-field { }
+  .detail-field .df-label {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text3);
+    margin-bottom: 4px;
+  }
+  .detail-field .df-value {
+    font-size: 14px;
+    color: var(--text);
+  }
+  .detail-field.full { grid-column: 1/-1; }
+
+
+
+  /* ═══════════════════════════════════════
+     ANIMATIONS
+  ═══════════════════════════════════════ */
+  
+
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes fadeOut {
+    from { opacity: 1; } to { opacity: 0; }
+  }
+
+  /* ═══════════════════════════════════════
+     RESPONSIVE
+  ═══════════════════════════════════════ */
+  @media (max-width: 768px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .form-grid .full { grid-column: 1; }
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .ticket-item { grid-template-columns: 1fr auto; }
+    .ticket-id-badge { display: none; }
+    .dashboard-content { padding: 20px 16px; }
+    .card-header { flex-direction: column; align-items: flex-start; }
+    .detail-grid { grid-template-columns: 1fr; }
+    .detail-field.full { grid-column: 1; }
+    table { min-width: 800px; }
+  }
+
+  /* ═══════════════════════════════════════
+     SYNC INDICATOR
+  ═══════════════════════════════════════ */
+  .sync-indicator {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+  }
+  .sync-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 6px var(--accent-green);
+    animation: pulse 2s infinite;
+  }
+  .sync-dot.syncing { background: var(--accent-amber); box-shadow: 0 0 6px var(--accent-amber); }
+  .sync-dot.error { background: var(--accent-red); box-shadow: 0 0 6px var(--accent-red); animation: none; }
+
+  .tab-row {
+    display: flex; gap: 4px;
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 4px;
+    margin-bottom: 24px;
+  }
+  .tab-btn {
+    flex: 1; padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    background: none;
+    color: var(--text2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    background: var(--surface3);
+    color: var(--text);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+
+  .section { display: none; }
+  .section.active { display: block; animation: fadeSlideUp 0.3s ease both; }
+</style>
+</head>
+<body>
+
+<div class="bg-mesh"></div>
+<div class="bg-grid"></div>
+
+<!-- ══════════════════════════════════════
+     LOGIN PAGE
+══════════════════════════════════════ -->
+<div id="login-page" class="page active">
+  <div class="login-container">
+    <div class="login-logo">
+      <div class="badge">HelpDesk Pro</div>
+      <h1>Ticketing System</h1>
+      <p>Sign in to access your dashboard</p>
+    </div>
+    <div class="login-card">
+      <h2>Welcome back</h2>
+      <p class="subtitle">Enter your credentials to continue</p>
+      <div style="display:none" id="login-system-info"></div>
+      <div class="login-error" id="login-error">
+        ⚠ Incorrect username or password. Please try again.
+      </div>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="login-username" placeholder="Enter your username" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="Enter your password" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary" onclick="handleLogin()">Sign In →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     END USER DASHBOARD
+══════════════════════════════════════ -->
+<div id="user-page" class="page">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="dot"></div>
+      HelpDesk Pro
+    </div>
+    <div class="navbar-right">
+      <div class="user-chip">
+        <div class="avatar avatar-user" id="user-avatar">U</div>
+        <span id="user-display">End User</span>
+        <span class="role-tag">USER</span>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="logout()">Sign out</button>
+    </div>
+  </nav>
+  <div class="dashboard-content">
+    <div class="page-header">
+      <h1>My Dashboard</h1>
+      <p>Submit and track your support tickets</p>
+    </div>
+
+    <div class="stats-row" id="user-stats">
+      <div class="stat-card"><div class="num num-blue" id="stat-u-total">0</div><div class="lbl">Total Tickets</div></div>
+      <div class="stat-card"><div class="num num-amber" id="stat-u-open">0</div><div class="lbl">Open</div></div>
+      <div class="stat-card"><div class="num num-blue" id="stat-u-accepted">0</div><div class="lbl">In Progress</div></div>
+      <div class="stat-card"><div class="num num-green" id="stat-u-resolved">0</div><div class="lbl">Resolved</div></div>
+    </div>
+
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab('submit')">Submit Ticket</button>
+      <button class="tab-btn" onclick="switchTab('mytickets')">My Tickets</button>
+    </div>
+
+    <div id="tab-submit" class="section active">
+      <div class="card">
+        <div class="card-header">
+          <h2>New Support Ticket</h2>
+          <div class="sync-indicator">
+            <div class="sync-dot" id="submit-sync-dot"></div>
+            <span id="submit-sync-text">Google Sheets Connected</span>
+          </div>
+        </div>
+        <div class="ticket-form">
+          <div class="submit-success" id="submit-success">
+            ✅ Your ticket has been submitted successfully and synced to Google Sheets!
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Name of User</label>
+              <input type="text" id="f-name" placeholder="Your full name">
+            </div>
+            <div class="form-group">
+              <label>Site</label>
+              <select id="f-site">
+                <option value="">Select site...</option>
+                <option value="Manila">Manila</option>
+                <option value="Cebu">Cebu</option>
+                <option value="Offsite">Offsite</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Issue / Subject</label>
+              <input type="text" id="f-issue" placeholder="Brief summary of the issue">
+            </div>
+            <div class="form-group full">
+              <label>Description</label>
+              <textarea id="f-desc" placeholder="Describe the issue in detail..."></textarea>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+            <button class="btn btn-primary" style="width:auto;padding:12px 32px;" onclick="submitTicket()">
+              Submit Ticket →
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-mytickets" class="section">
+      <div class="card">
+        <div class="card-header">
+          <h2>My Tickets</h2>
+          <button class="btn btn-outline btn-sm" onclick="loadTickets()">⟳ Refresh</button>
+        </div>
+        <div class="tickets-list" id="user-tickets-list">
+          <div class="empty-state">
+            <div class="icon">🎫</div>
+            <h3>No tickets yet</h3>
+            <p>Submit a ticket and it will appear here.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     ADMIN DASHBOARD
+══════════════════════════════════════ -->
+<div id="admin-page" class="page">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="dot"></div>
+      HelpDesk Pro
+    </div>
+    <div class="navbar-right">
+      <div class="sync-indicator" style="margin-right:4px;">
+        <div class="sync-dot" id="nav-sync-dot" style="width:5px;height:5px;"></div>
+        <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);" id="nav-sync-text">Live</span>
+      </div>
+      <div class="user-chip">
+        <div class="avatar avatar-admin">A</div>
+        <span>Admin peer</span>
+        <span class="role-tag">ADMIN</span>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="logout()">Sign out</button>
+    </div>
+  </nav>
+  <div class="dashboard-content">
+    <div class="page-header">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(79,138,255,0.1);border:1px solid rgba(79,138,255,0.2);border-radius:100px;padding:4px 12px;margin-bottom:10px;">
+            <div class="sync-dot" id="admin-header-dot" style="width:5px;height:5px;"></div>
+            <span style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);">Live Sync Active</span>
+          </div>
+          <h1>Admin Dashboard</h1>
+          <p>Manage, assign, and resolve all support tickets in real time</p>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);text-align:right;padding-top:4px;">
+          <div style="margin-bottom:2px;">v2.1.0 · HelpDesk Pro</div>
+          <div id="admin-last-sync" style="color:var(--text3);">Connecting…</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card" style="border-top-color:var(--accent);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(79,138,255,0.12);border:1px solid rgba(79,138,255,0.2);display:flex;align-items:center;justify-content:center;font-size:16px;">🎫</div>
+          <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);">ALL TIME</span>
+        </div>
+        <div class="num num-blue" id="stat-total">0</div>
+        <div class="lbl">Total Tickets</div>
+      </div>
+      <div class="stat-card" style="border-top-color:var(--accent-amber);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.2);display:flex;align-items:center;justify-content:center;font-size:16px;">📬</div>
+          <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);">PENDING</span>
+        </div>
+        <div class="num num-amber" id="stat-open">0</div>
+        <div class="lbl">Open</div>
+      </div>
+      <div class="stat-card" style="border-top-color:var(--accent);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(79,138,255,0.12);border:1px solid rgba(79,138,255,0.2);display:flex;align-items:center;justify-content:center;font-size:16px;">⚡</div>
+          <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);">ACTIVE</span>
+        </div>
+        <div class="num num-blue" id="stat-accepted">0</div>
+        <div class="lbl">In Progress</div>
+      </div>
+      <div class="stat-card" style="border-top-color:var(--accent-green);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(34,211,160,0.12);border:1px solid rgba(34,211,160,0.2);display:flex;align-items:center;justify-content:center;font-size:16px;">✅</div>
+          <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);">DONE</span>
+        </div>
+        <div class="num num-green" id="stat-resolved">0</div>
+        <div class="lbl">Resolved</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <!-- Card Top Bar: Title + Sync + Export -->
+      <div style="padding:16px 24px 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border-bottom:0;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <h2 style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;">All Tickets</h2>
+          <div class="sync-indicator">
+            <div class="sync-dot" id="admin-sync-dot"></div>
+            <span id="admin-sync-text" style="font-size:10px;">Connecting…</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-outline btn-sm" onclick="loadAdminTickets()" style="padding:6px 12px;font-size:12px;">⟳ Refresh</button>
+          <div style="position:relative;display:inline-block;" id="export-dropdown-wrap">
+            <button class="btn btn-sm" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border:none;box-shadow:0 4px 12px rgba(79,138,255,0.25);padding:6px 14px;font-size:12px;" onclick="toggleExportMenu()">⬇ Export</button>
+            <div id="export-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:6px;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,0.4);z-index:50;">
+              <button onclick="exportCSV()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;border-radius:6px;border:none;background:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;" onmouseover="this.style.background='var(--surface3)'" onmouseout="this.style.background='none'">📄 Export as CSV</button>
+              <button onclick="exportXLSX()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;border-radius:6px;border:none;background:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;" onmouseover="this.style.background='var(--surface3)'" onmouseout="this.style.background='none'">📊 Export as Excel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Filter Bar -->
+      <div style="padding:12px 24px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <input type="text" id="search-input" placeholder="🔍  Search by name, ID, issue…" oninput="renderAdminTable()"
+          style="flex:1;min-width:200px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color 0.2s;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        <select id="filter-status" onchange="renderAdminTable()"
+          style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;cursor:pointer;">
+          <option value="">All Statuses</option>
+          <option value="Open">🟡 Open</option>
+          <option value="Accepted">🔵 Accepted</option>
+          <option value="Resolved">🟢 Resolved</option>
+        </select>
+        <select id="filter-site" onchange="renderAdminTable()"
+          style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;cursor:pointer;">
+          <option value="">All Sites</option>
+          <option value="Manila">📍 Manila</option>
+          <option value="Cebu">📍 Cebu</option>
+          <option value="Offsite">📍 Offsite</option>
+        </select>
+      </div>
+      <div class="card-header" style="display:none;"><!-- hidden placeholder for JS compatibility --></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Ticket ID</th>
+              <th>Name</th>
+              <th>Issue</th>
+              <th>Site</th>
+              <th>Date/Time</th>
+              <th>Status</th>
+              <th>Assigned Admin</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="admin-table-body">
+            <tr><td colspan="8"><div class="empty-state"><div class="icon">📋</div><h3>No tickets yet</h3><p>Tickets submitted by end users will appear here automatically.</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     ADMIN UPDATE MODAL
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="update-modal">
+  <div class="modal">
+    <h2>Update Ticket</h2>
+    <p class="modal-sub" id="modal-ticket-id-label">Ticket #</p>
+
+    <div class="detail-grid" id="modal-detail-view"></div>
+
+    <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;padding-top:4px;">Admin Actions</div>
+
+    <div class="form-group">
+      <label>Ticket Status</label>
+      <select id="modal-status">
+        <option value="Open">🟡 Open</option>
+        <option value="Accepted">🔵 Accepted — In Progress</option>
+        <option value="Resolved">🟢 Resolved — Closed</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Assigned Admin</label>
+      <input type="text" id="modal-admin" placeholder="Name of admin handling this ticket">
+    </div>
+    <div class="form-group">
+      <label>Resolution Details / Remarks</label>
+      <textarea id="modal-resolution" placeholder="Describe the resolution, steps taken, or add any relevant remarks…"></textarea>
+    </div>
+    <div class="form-group" id="date-resolved-group" style="display:none;">
+      <label>Date Resolved</label>
+      <input type="text" id="modal-date-resolved" placeholder="Auto-filled when marked Resolved" readonly
+        style="opacity:0.6;background:var(--surface3);cursor:not-allowed;">
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" style="width:auto;padding:12px 28px;" onclick="saveTicketUpdate()">Save Changes →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+// HELPDESK PRO — GLOBAL CONFIGURATION
+// ┌─────────────────────────────────────────────────────────────────────┐
+// │  PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW (line 7)         │
+// │  This is the ONLY place you need to set it. Works on all devices.  │
+// └─────────────────────────────────────────────────────────────────────┘
+// ═══════════════════════════════════════════════════════════════════════
+const CONFIG = {
+  GAS_URL : 'https://script.google.com/macros/s/AKfycbxo7uxOvkmW2PHzJkaqoRj-QfAohc4H7MocunPQg3Q8urwUurhGFfxv0ZpNsDaXGxSX/exec',  // ← Replace this with your Web App URL
+  POLL_MS : 4000,                          // Polling interval in ms (4 seconds)
+  VERSION : '2.1.0'
+};
+// ═══════════════════════════════════════════════════════════════════════
+
+// ── CREDENTIALS ─────────────────────────────────────────────────────
+const USERS = {
+  user: { password: 'password2026', role: 'user', display: 'End User' },
+  peer: { password: 'password2026', role: 'admin', display: 'peer' }
+};
+
+// ── RUNTIME STATE ───────────────────────────────────────────────────
+let tickets        = [];
+let currentUser    = null;
+let activeModalTicketId = null;
+let pollTimer      = null;
+let lastTicketHash = '';
+let isFetching     = false;
+let pendingWrite   = false;
+
+// Derive the active GAS URL — config takes priority, localStorage is fallback
+// for any legacy saved URL (admin override during testing)
+function getGasUrl() {
+  const cfg = CONFIG.GAS_URL.trim();
+  if (cfg && cfg !== 'YOUR_APPS_SCRIPT_URL_HERE') return cfg;
+  return localStorage.getItem('hd_gas_url') || '';  // legacy fallback
+}
+
+// ── DATE HELPERS ─────────────────────────────────────────────────────
+function formatDatePH(date) {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const ph = new Date(d.getTime() + 8 * 3600 * 1000);
+  const p = n => String(n).padStart(2, '0');
+  return `${p(ph.getUTCMonth()+1)}/${p(ph.getUTCDate())}/${ph.getUTCFullYear()} ${p(ph.getUTCHours())}:${p(ph.getUTCMinutes())}:${p(ph.getUTCSeconds())}`;
+}
+function formatDate(v) {
+  if (!v) return '—';
+  if (/^\d{2}\/\d{2}\/\d{4}/.test(v)) return v;
+  return formatDatePH(v);
+}
+function genTicketId() {
+  const now = new Date(), p = n => String(n).padStart(2,'0');
+  return `TKT-${now.getFullYear()}${p(now.getMonth()+1)}${p(now.getDate())}-${String(Date.now()).slice(-4)}`;
+}
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function statusClass(s) {
+  return {Open:'s-open',Accepted:'s-accepted',Resolved:'s-resolved',Closed:'s-closed'}[s]||'s-open';
+}
+function toast(msg, type='info') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`; t.textContent = msg;
+  c.appendChild(t); setTimeout(() => t.remove(), 3200);
+}
+function setSyncState(dotId, textId, state, msg) {
+  const dot = document.getElementById(dotId), txt = document.getElementById(textId);
+  if (!dot||!txt) return;
+  dot.className = 'sync-dot'+(state==='syncing'?' syncing':state==='error'?' error':'');
+  txt.textContent = msg;
+}
+function hashTickets(arr) {
+  return arr.map(t => t.id+t.status+(t.assignedAdmin||'')+(t.resolutionDetails||'')+(t.dateResolved||'')).join('|');
+}
+
+// ── GAS: POST (write) ────────────────────────────────────────────────
+async function gasPost(action, ticket) {
+  const url = getGasUrl();
+  if (!url) return false;
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ticket }),
+      mode: 'no-cors'
+    });
+    return true;
+  } catch(e) { return false; }
+}
+
+// ── GAS: GET via JSONP (bypasses CORS for GitHub Pages) ──────────────
+let _resolve = null, _timer = null;
+window._gasCallback = function(data) {
+  if (_timer) clearTimeout(_timer);
+  if (_resolve) { _resolve(data); _resolve = null; }
+};
+
+function gasFetch() {
+  return new Promise(resolve => {
+    const url = getGasUrl();
+    if (!url) { resolve(null); return; }
+    const old = document.getElementById('_gs'); if (old) old.remove();
+    _resolve = resolve;
+    _timer = setTimeout(() => { _resolve = null; resolve(null); }, 8000);
+    const s = document.createElement('script');
+    s.id = '_gs';
+    s.src = url + '?callback=_gasCallback&_=' + Date.now();
+    s.onerror = () => { if(_resolve){_resolve(null);_resolve=null;} };
+    document.head.appendChild(s);
+  });
+}
+
+// ── POLL ENGINE ──────────────────────────────────────────────────────
+function startPolling() {
+  stopPolling();
+  const url = getGasUrl();
+  if (!url) {
+    // No URL configured — show warning in sync indicators
+    setSyncState('admin-sync-dot','admin-sync-text','error','GAS URL not set in CONFIG');
+    setSyncState('submit-sync-dot','submit-sync-text','error','GAS URL not set');
+    console.warn('[HelpDesk Pro] CONFIG.GAS_URL is not set. Open ticketing-system.html and replace YOUR_APPS_SCRIPT_URL_HERE with your Web App URL.');
+    return;
+  }
+  pollOnce();
+  pollTimer = setInterval(pollOnce, CONFIG.POLL_MS);
+}
+
+function stopPolling() {
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+}
+
+async function pollOnce() {
+  if (isFetching || pendingWrite || !currentUser) return;
+  const url = getGasUrl();
+  if (!url) return;
+  isFetching = true;
+
+  const role  = currentUser.role;
+  const dotId = role === 'admin' ? 'admin-sync-dot'  : 'submit-sync-dot';
+  const txtId = role === 'admin' ? 'admin-sync-text' : 'submit-sync-text';
+
+  try {
+    const data = await gasFetch();
+    if (!data || !Array.isArray(data.tickets)) throw new Error('Invalid response');
+
+    const newHash = hashTickets(data.tickets);
+    const changed = newHash !== lastTicketHash;
+    lastTicketHash = newHash;
+    tickets = data.tickets;
+
+    if (changed) {
+      if (role === 'admin') { renderAdminTable(); updateAdminStats(); }
+      else                  { loadTickets(); updateUserStats(); }
+    }
+
+    const timeStr = formatDatePH(new Date()).split(' ')[1];
+    setSyncState(dotId, txtId, 'ok', `Live · ${timeStr}`);
+    // Sync all indicators
+    const hdrDot = document.getElementById('admin-header-dot');
+    const lastSync = document.getElementById('admin-last-sync');
+    const navDot = document.getElementById('nav-sync-dot');
+    const navTxt = document.getElementById('nav-sync-text');
+    if (hdrDot) hdrDot.className = 'sync-dot';
+    if (lastSync) lastSync.textContent = `Last sync: ${timeStr}`;
+    if (navDot) navDot.className = 'sync-dot';
+    if (navTxt) navTxt.textContent = timeStr;
+
+  } catch(e) {
+    setSyncState(dotId, txtId, 'error', 'Retrying…');
+    const navD = document.getElementById('nav-sync-dot');
+    const navT = document.getElementById('nav-sync-text');
+    if (navD) navD.className = 'sync-dot error';
+    if (navT) navT.textContent = 'Offline';
+  } finally {
+    isFetching = false;
+  }
+}
+
+// ── AUTH ─────────────────────────────────────────────────────────────
+function handleLogin() {
+  const u   = document.getElementById('login-username').value.trim();
+  const p   = document.getElementById('login-password').value;
+  const err = document.getElementById('login-error');
+  if (!USERS[u] || USERS[u].password !== p) { err.style.display = 'block'; return; }
+  err.style.display = 'none';
+  currentUser = { username: u, ...USERS[u] };
+  showPage(currentUser.role === 'admin' ? 'admin-page' : 'user-page');
+  if (currentUser.role === 'user') {
+    document.getElementById('user-display').textContent = currentUser.display;
+    document.getElementById('user-avatar').textContent  = u[0].toUpperCase();
+  }
+  startPolling();
+}
+
+function logout() {
+  stopPolling();
+  currentUser = null; tickets = []; lastTicketHash = '';
+  document.getElementById('login-username').value = '';
+  document.getElementById('login-password').value = '';
+  showPage('login-page');
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('login-page').classList.contains('active')) handleLogin();
+});
+
+// ── PAGE / TAB ROUTING ───────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===(tab==='submit'?0:1)));
+  document.getElementById('tab-submit').classList.toggle('active', tab==='submit');
+  document.getElementById('tab-mytickets').classList.toggle('active', tab==='mytickets');
+}
+
+// ── SUBMIT TICKET ────────────────────────────────────────────────────
+async function submitTicket() {
+  const name  = document.getElementById('f-name').value.trim();
+  const issue = document.getElementById('f-issue').value.trim();
+  const desc  = document.getElementById('f-desc').value.trim();
+  const site  = document.getElementById('f-site').value;
+  if (!name||!issue||!desc||!site) { toast('Please fill in all fields.','error'); return; }
+
+  const url = getGasUrl();
+  if (!url) {
+    toast('Backend not configured. Contact your administrator.','error');
+    return;
+  }
+
+  const ticket = {
+    id: genTicketId(), name, issue, description: desc, site,
+    dateSubmitted: formatDatePH(new Date()),
+    status: 'Open', assignedAdmin: '', resolutionDetails: '', dateResolved: '',
+    submittedBy: currentUser.username
+  };
+
+  // Optimistic UI
+  tickets.unshift(ticket);
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-issue').value = '';
+  document.getElementById('f-desc').value = '';
+  document.getElementById('f-site').value = '';
+  const succ = document.getElementById('submit-success');
+  succ.classList.add('show'); setTimeout(() => succ.classList.remove('show'), 5000);
+  updateUserStats();
+
+  pendingWrite = true;
+  setSyncState('submit-sync-dot','submit-sync-text','syncing','Submitting…');
+  const ok = await gasPost('create', ticket);
+  pendingWrite = false;
+
+  if (ok) {
+    toast('Ticket submitted and synced!','success');
+    lastTicketHash = '';
+  } else {
+    toast('Submitted locally — sync pending.','info');
+    setSyncState('submit-sync-dot','submit-sync-text','error','Sync pending');
+  }
+}
+
+// ── USER: MY TICKETS ─────────────────────────────────────────────────
+function loadTickets() {
+  const container = document.getElementById('user-tickets-list');
+  const mine = tickets.filter(t => t.submittedBy === currentUser.username);
+  if (!mine.length) {
+    container.innerHTML = `<div class="empty-state"><div class="icon">🎫</div><h3>No tickets yet</h3><p>Submit a ticket and it will appear here.</p></div>`;
+    return;
+  }
+  container.innerHTML = mine.map(t => `
+    <div class="ticket-item">
+      <div class="ticket-id-badge">${escHtml(t.id)}</div>
+      <div class="ticket-info">
+        <h3>${escHtml(t.issue)}</h3>
+        <div class="meta">
+          <span>👤 ${escHtml(t.name)}</span>
+          <span>📍 ${escHtml(t.site)}</span>
+          <span>🕐 ${formatDate(t.dateSubmitted)}</span>
+          ${t.assignedAdmin?`<span>🧑‍💼 ${escHtml(t.assignedAdmin)}</span>`:''}
+        </div>
+        ${t.resolutionDetails?`<div style="margin-top:8px;font-size:12px;color:var(--text2);background:var(--surface3);padding:8px 12px;border-radius:6px;">${escHtml(t.resolutionDetails)}</div>`:''}
+      </div>
+      <div><span class="status-badge ${statusClass(t.status)}">${t.status}</span></div>
+      ${t.dateResolved?`<div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">${formatDate(t.dateResolved)}</div>`:'<div></div>'}
+    </div>`).join('');
+  updateUserStats();
+}
+
+function updateUserStats() {
+  const my = tickets.filter(t => t.submittedBy === currentUser?.username);
+  document.getElementById('stat-u-total').textContent    = my.length;
+  document.getElementById('stat-u-open').textContent     = my.filter(t=>t.status==='Open').length;
+  document.getElementById('stat-u-accepted').textContent = my.filter(t=>t.status==='Accepted').length;
+  document.getElementById('stat-u-resolved').textContent = my.filter(t=>t.status==='Resolved').length;
+}
+
+// ── ADMIN: TABLE + STATS ─────────────────────────────────────────────
+function loadAdminTickets() { pollOnce(); }
+
+function updateAdminStats() {
+  document.getElementById('stat-total').textContent    = tickets.length;
+  document.getElementById('stat-open').textContent     = tickets.filter(t=>t.status==='Open').length;
+  document.getElementById('stat-accepted').textContent = tickets.filter(t=>t.status==='Accepted').length;
+  document.getElementById('stat-resolved').textContent = tickets.filter(t=>t.status==='Resolved').length;
+}
+
+function renderAdminTable() {
+  const search  = (document.getElementById('search-input')?.value||'').toLowerCase();
+  const statusF = document.getElementById('filter-status')?.value||'';
+  const siteF   = document.getElementById('filter-site')?.value||'';
+
+  const filtered = tickets.filter(t => {
+    const ms = !search || [t.id,t.name,t.issue,t.assignedAdmin||''].some(v=>v.toLowerCase().includes(search));
+    return ms && (!statusF||t.status===statusF) && (!siteF||t.site===siteF);
+  });
+
+  const tbody = document.getElementById('admin-table-body');
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="icon">📋</div><h3>No tickets found</h3><p>Adjust filters or wait for submissions.</p></div></td></tr>`;
+    updateAdminStats(); return;
+  }
+
+  tbody.innerHTML = filtered.map(t => `
+    <tr>
+      <td><span class="ticket-id-badge" style="white-space:nowrap;">${escHtml(t.id)}</span></td>
+      <td><strong>${escHtml(t.name)}</strong><div style="font-size:11px;color:var(--text3);margin-top:2px;">${escHtml(t.submittedBy||'')}</div></td>
+      <td>
+        <div style="font-weight:500;">${escHtml(t.issue)}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(t.description)}">${escHtml(t.description)}</div>
+      </td>
+      <td><span style="font-size:12px;background:var(--surface3);padding:3px 8px;border-radius:4px;">${escHtml(t.site)}</span></td>
+      <td style="font-size:12px;color:var(--text2);white-space:nowrap;">${formatDate(t.dateSubmitted)}</td>
+      <td><span class="status-badge ${statusClass(t.status)}">${t.status}</span></td>
+      <td style="font-size:13px;">${t.assignedAdmin?escHtml(t.assignedAdmin):'<span style="color:var(--text3)">—</span>'}</td>
+      <td>
+        <div class="actions-cell">
+          ${t.status==='Open'?`<button class="btn btn-sm btn-accept" onclick="quickAccept('${escHtml(t.id)}')" title="Accept this ticket">✓ Accept</button>`:''}
+          ${t.status!=='Resolved'?`<button class="btn btn-sm btn-resolve" onclick="quickResolve('${escHtml(t.id)}')" title="Mark as resolved">✔ Resolve</button>`:`<span style="font-size:11px;color:var(--accent-green);">✓ Done</span>`}
+          <button class="btn btn-sm btn-edit" onclick="openModal('${escHtml(t.id)}')" title="View and edit ticket">✎ Edit</button>
+        </div>
+      </td>
+    </tr>`).join('');
+  updateAdminStats();
+}
+
+// ── ADMIN QUICK ACTIONS ──────────────────────────────────────────────
+async function quickAccept(id) {
+  const t = tickets.find(x=>x.id===id); if(!t) return;
+  t.status = 'Accepted'; if(!t.assignedAdmin) t.assignedAdmin = 'peer';
+  renderAdminTable();
+  pendingWrite = true;
+  await gasPost('update', t);
+  pendingWrite = false;
+  lastTicketHash = '';
+  toast('Ticket accepted!','success');
+}
+
+async function quickResolve(id) {
+  const t = tickets.find(x=>x.id===id); if(!t) return;
+  t.status = 'Resolved'; t.dateResolved = formatDatePH(new Date());
+  if(!t.assignedAdmin) t.assignedAdmin = 'peer';
+  renderAdminTable();
+  pendingWrite = true;
+  await gasPost('update', t);
+  pendingWrite = false;
+  lastTicketHash = '';
+  toast('Ticket resolved!','success');
+}
+
+// ── MODAL ────────────────────────────────────────────────────────────
+function openModal(id) {
+  const t = tickets.find(x=>x.id===id); if(!t) return;
+  activeModalTicketId = id;
+  document.getElementById('modal-ticket-id-label').textContent = `Ticket ${t.id} — ${t.issue}`;
+  document.getElementById('modal-status').value    = t.status;
+  document.getElementById('modal-admin').value     = t.assignedAdmin||'';
+  document.getElementById('modal-resolution').value= t.resolutionDetails||'';
+  document.getElementById('modal-date-resolved').value = t.dateResolved ? formatDate(t.dateResolved) : '';
+  const dg = document.getElementById('date-resolved-group');
+  dg.style.display = t.status==='Resolved'?'block':'none';
+  document.getElementById('modal-detail-view').innerHTML = `
+    <div class="detail-field"><div class="df-label">Name</div><div class="df-value">${escHtml(t.name)}</div></div>
+    <div class="detail-field"><div class="df-label">Site</div><div class="df-value">${escHtml(t.site)}</div></div>
+    <div class="detail-field full"><div class="df-label">Issue</div><div class="df-value">${escHtml(t.issue)}</div></div>
+    <div class="detail-field full"><div class="df-label">Description</div><div class="df-value" style="color:var(--text2);">${escHtml(t.description)}</div></div>
+    <div class="detail-field"><div class="df-label">Submitted</div><div class="df-value" style="font-size:13px;">${formatDate(t.dateSubmitted)}</div></div>`;
+  document.getElementById('modal-status').onchange = function() {
+    dg.style.display = this.value==='Resolved'?'block':'none';
+  };
+  document.getElementById('update-modal').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('update-modal').classList.remove('open');
+  activeModalTicketId = null;
+}
+async function saveTicketUpdate() {
+  if(!activeModalTicketId) return;
+  const t = tickets.find(x=>x.id===activeModalTicketId); if(!t) return;
+  const newStatus = document.getElementById('modal-status').value;
+  t.status            = newStatus;
+  t.assignedAdmin     = document.getElementById('modal-admin').value.trim();
+  t.resolutionDetails = document.getElementById('modal-resolution').value.trim();
+  if(newStatus==='Resolved'&&!t.dateResolved) t.dateResolved = formatDatePH(new Date());
+  else if(newStatus!=='Resolved') t.dateResolved = '';
+  closeModal();
+  renderAdminTable();
+  toast('Ticket updated!','success');
+  pendingWrite = true;
+  await gasPost('update', t);
+  pendingWrite = false;
+  lastTicketHash = '';
+}
+document.getElementById('update-modal').addEventListener('click', function(e) {
+  if(e.target===this) closeModal();
+});
+
+// ── EXPORT ───────────────────────────────────────────────────────────
+const EXPORT_HEADERS = [
+  'Ticket ID','Name of User','Issue','Description','Site',
+  'Date Submitted','Ticket Status','Assigned Admin','Resolution Details','Date Resolved'
+];
+function ticketToRow(t) {
+  return [t.id||'',t.name||'',t.issue||'',t.description||'',t.site||'',
+          t.dateSubmitted||'',t.status||'',t.assignedAdmin||'',t.resolutionDetails||'',t.dateResolved||''];
+}
+function toggleExportMenu() {
+  const m = document.getElementById('export-menu');
+  m.style.display = m.style.display==='none'?'block':'none';
+}
+document.addEventListener('click', function(e) {
+  const w = document.getElementById('export-dropdown-wrap');
+  if(w&&!w.contains(e.target)){const m=document.getElementById('export-menu');if(m)m.style.display='none';}
+});
+function exportCSV() {
+  document.getElementById('export-menu').style.display='none';
+  if(!tickets.length){toast('No tickets to export.','error');return;}
+  const esc=v=>{const s=String(v);return s.includes(',')||s.includes('"')||s.includes('\n')?`"${s.replace(/"/g,'""')}"`:s;};
+  const rows=[EXPORT_HEADERS,...tickets.map(ticketToRow)];
+  const csv=rows.map(r=>r.map(esc).join(',')).join('\r\n');
+  downloadFile(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}),`HelpDesk_${getExportDate()}.csv`);
+  toast('Exported as CSV!','success');
+}
+function exportXLSX() {
+  document.getElementById('export-menu').style.display='none';
+  if(!tickets.length){toast('No tickets to export.','error');return;}
+  const rows=[EXPORT_HEADERS,...tickets.map(ticketToRow)];
+  const xmlRows=rows.map((row,ri)=>{
+    const cells=row.map((val,ci)=>{
+      const col=String.fromCharCode(65+ci),ref=`${col}${ri+1}`;
+      const esc=String(val).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      const s=ri===0?' s="1"':'';
+      return `<c r="${ref}"${s} t="inlineStr"><is><t>${esc}</t></is></c>`;
+    }).join('');
+    return `<row r="${ri+1}">${cells}</row>`;
+  }).join('');
+  const sXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${xmlRows}</sheetData></worksheet>`;
+  const stXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts><font><b/><sz val="11"/></font><font><sz val="11"/></font></fonts><fills><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"><alignment horizontal="center"/></xf></cellXfs></styleSheet>`;
+  const wXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Tickets" sheetId="1" r:id="rId1"/></sheets></workbook>`;
+  const rXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>`;
+  const ctXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`;
+  const zip=buildZip([
+    {name:'[Content_Types].xml',data:ctXml},
+    {name:'_rels/.rels',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
+    {name:'xl/workbook.xml',data:wXml},
+    {name:'xl/_rels/workbook.xml.rels',data:rXml},
+    {name:'xl/worksheets/sheet1.xml',data:sXml},
+    {name:'xl/styles.xml',data:stXml}
+  ]);
+  downloadFile(new Blob([zip],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),`HelpDesk_${getExportDate()}.xlsx`);
+  toast('Exported as Excel!','success');
+}
+function getExportDate(){const d=new Date(),p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}`;}
+function downloadFile(blob,filename){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(url),1000);}
+function buildZip(files){const enc=new TextEncoder();const lhs=[],cds=[];let offset=0;function crc32(data){let c=-1;const t=new Uint32Array(256);for(let i=0;i<256;i++){let x=i;for(let j=0;j<8;j++)x=(x&1)?(0xEDB88320^(x>>>1)):(x>>>1);t[i]=x;}for(let i=0;i<data.length;i++)c=t[(c^data[i])&0xFF]^(c>>>8);return(c^-1)>>>0;}function u16(n){const b=new Uint8Array(2);new DataView(b.buffer).setUint16(0,n,true);return b;}function u32(n){const b=new Uint8Array(4);new DataView(b.buffer).setUint32(0,n,true);return b;}for(const file of files){const nb=enc.encode(file.name),db=enc.encode(file.data),crc=crc32(db),sz=db.length;const lh=new Uint8Array([0x50,0x4B,0x03,0x04,...u16(20),...u16(0),...u16(0),...u16(0),...u16(0),...u32(crc),...u32(sz),...u32(sz),...u16(nb.length),...u16(0),...nb]);lhs.push({lh,data:db,nb,crc,sz,offset});const cd=new Uint8Array([0x50,0x4B,0x01,0x02,...u16(20),...u16(20),...u16(0),...u16(0),...u16(0),...u16(0),...u16(0),...u32(crc),...u32(sz),...u32(sz),...u16(nb.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(offset),...nb]);cds.push(cd);offset+=lh.length+sz;}const cdOff=offset,cdSz=cds.reduce((s,c)=>s+c.length,0);const e2=enc.encode('HelpDesk Export');const eocd=new Uint8Array([0x50,0x4B,0x05,0x06,...u16(0),...u16(0),...u16(files.length),...u16(files.length),...u32(cdSz),...u32(cdOff),...u16(e2.length),...e2]);const parts=[];for(const{lh,data}of lhs){parts.push(lh);parts.push(data);}for(const cd of cds)parts.push(cd);parts.push(eocd);const total=parts.reduce((s,p)=>s+p.length,0),result=new Uint8Array(total);let pos=0;for(const p of parts){result.set(p,pos);pos+=p.length;}return result;}
+
+// ── INIT ─────────────────────────────────────────────────────────────
+(function init() {
+  // GAS URL is globally configured in CONFIG above — no manual setup needed
+  const configured = !!getGasUrl();
+  setSyncState('admin-sync-dot','admin-sync-text', configured ? 'syncing' : 'error', configured ? 'Connecting…' : 'GAS URL not set');
+  setSyncState('submit-sync-dot','submit-sync-text', configured ? 'syncing' : 'error', configured ? 'Connecting…' : 'GAS URL not set');
+})();
+</script>
+</body>
+</html>
