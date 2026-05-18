@@ -3,1538 +3,1670 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HelpDesk Pro — Ticketing System</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>KennCorp — Careers & Assessment</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a0c10;
-    --surface: #12151c;
-    --surface2: #1a1f2a;
-    --surface3: #222837;
-    --border: #2a3045;
-    --border2: #3a4560;
-    --accent: #4f8aff;
-    --accent2: #7c5cfc;
-    --accent-green: #22d3a0;
-    --accent-amber: #f5a623;
-    --accent-red: #ff5c5c;
-    --accent-blue-light: #a8c8ff;
-    --text: #e8edf8;
-    --text2: #8a93aa;
-    --text3: #5a6478;
-    --glow: rgba(79,138,255,0.15);
-    --glow2: rgba(124,92,252,0.12);
-    --shadow: 0 8px 32px rgba(0,0,0,0.4);
-    --radius: 12px;
-    --radius2: 8px;
-  }
+/* ── UPDATE v3: Entire CSS block — dark mode + all prior updates ── */
+:root {
+  --ink: #0d0d0f;
+  --cream: #f5f2ec;
+  --white: #ffffff;
+  --accent: #e84c2b;
+  --accent2: #2b6be8;
+  --accent3: #16a34a;
+  --muted: #7a7872;
+  --border: rgba(13,13,15,0.1);
+  --card: #ffffff;
+  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  --shadow-lg: 0 16px 60px rgba(0,0,0,0.12);
+  --timer-ok: #16a34a;
+  --timer-warn: #f5a623;
+  --timer-danger: #dc2626;
+  /* NEW v3: nav background */
+  --nav-bg: rgba(245,242,236,0.88);
+}
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* NEW v3: Dark mode token overrides */
+[data-theme="dark"] {
+  --ink: #f0ede6;
+  --cream: #121212;
+  --white: #1e1e1e;
+  --muted: #9a948c;
+  --border: rgba(240,237,230,0.1);
+  --card: #1e1e1e;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --shadow-lg: 0 16px 60px rgba(0,0,0,0.5);
+  --nav-bg: rgba(18,18,18,0.9);
+}
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+/* NEW v3: smooth transitions on every element when theme switches */
+*, *::before, *::after {
+  transition: background-color 0.3s ease, color 0.3s ease,
+              border-color 0.3s ease, box-shadow 0.3s ease;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
 
-  /* ═══════════════════════════════════════
-     BACKGROUND MESH
-  ═══════════════════════════════════════ */
-  .bg-mesh {
-    position: fixed; inset: 0; z-index: 0; pointer-events: none;
-    background:
-      radial-gradient(ellipse 80% 60% at 10% 20%, rgba(79,138,255,0.07) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 80% at 90% 80%, rgba(124,92,252,0.07) 0%, transparent 60%),
-      radial-gradient(ellipse 50% 40% at 50% 50%, rgba(34,211,160,0.03) 0%, transparent 70%);
-  }
-  .bg-grid {
-    position: fixed; inset: 0; z-index: 0; pointer-events: none;
-    background-image:
-      linear-gradient(rgba(79,138,255,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(79,138,255,0.04) 1px, transparent 1px);
-    background-size: 48px 48px;
-  }
+/* ── SCREENS ── */
+.screen { display: none; min-height: 100vh; animation: fadeUp 0.45s ease forwards; }
+.screen.active { display: block; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
-  /* ═══════════════════════════════════════
-     PAGES
-  ═══════════════════════════════════════ */
-  .page { display: none; position: relative; z-index: 1; min-height: 100vh; }
-  .page.active { display: flex; flex-direction: column; }
+/* ── NAV ── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 6vw;
+  background: var(--nav-bg); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; letter-spacing: -0.03em; color: var(--ink); }
+.logo span { color: var(--accent); }
+.nav-btn {
+  background: var(--ink); color: var(--cream);
+  font-family: 'Syne', sans-serif; font-weight: 600; font-size: 0.75rem;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 0.5rem 1.2rem; border-radius: 99px; border: none; cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+.nav-btn:hover { background: var(--accent); transform: scale(1.04); }
+.nav-btn.outline { background: transparent; color: var(--ink); border: 1.5px solid var(--border); }
+.nav-btn.outline:hover { background: var(--ink); color: var(--cream); border-color: var(--ink); }
 
-  /* ═══════════════════════════════════════
-     LOGIN PAGE
-  ═══════════════════════════════════════ */
-  #login-page {
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-  }
+/* NEW v3: Dark / Light mode toggle button */
+.theme-toggle {
+  display: flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--card); border: 1.5px solid var(--border);
+  cursor: pointer; font-size: 1rem; line-height: 1;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  flex-shrink: 0;
+}
+.theme-toggle:hover { transform: scale(1.1); border-color: var(--accent); }
+/* Show sun in dark mode, moon in light mode */
+.theme-icon-sun  { display: none; }
+.theme-icon-moon { display: block; }
+[data-theme="dark"] .theme-icon-sun  { display: block; }
+[data-theme="dark"] .theme-icon-moon { display: none; }
 
-  .login-container {
-    width: 100%;
-    max-width: 440px;
-    animation: fadeSlideUp 0.6s ease both;
-  }
+/* ── HERO ── */
+.hero { padding: 5.5rem 6vw 4.5rem; position: relative; overflow: hidden; }
+.hero::before {
+  content: ''; position: absolute; top: -100px; right: -150px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(232,76,43,0.1) 0%, transparent 65%);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: rgba(232,76,43,0.08); border: 1px solid rgba(232,76,43,0.2);
+  color: var(--accent); font-size: 0.72rem; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 0.3rem 0.9rem; border-radius: 99px; margin-bottom: 1.2rem;
+}
+.hero-eyebrow::before {
+  content: ''; width: 6px; height: 6px;
+  background: var(--accent); border-radius: 50%;
+  animation: pulse 1.8s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.6)} }
+.hero h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  font-weight: 800; line-height: 1.05; letter-spacing: -0.04em;
+  margin-bottom: 1.2rem; max-width: 620px;
+}
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero-sub { color: var(--muted); font-size: 1rem; line-height: 1.75; max-width: 520px; margin-bottom: 2rem; }
+.hero-stats { display: flex; gap: 2.5rem; flex-wrap: wrap; }
+.stat-num { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.04em; display: block; }
+.stat-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
 
-  .login-logo {
-    text-align: center;
-    margin-bottom: 40px;
-  }
-  .login-logo .badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    padding: 10px 20px;
-    border-radius: 100px;
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: white;
-    margin-bottom: 16px;
-  }
-  .login-logo .badge::before {
-    content: '';
-    width: 6px; height: 6px;
-    background: white;
-    border-radius: 50%;
-    opacity: 0.8;
-  }
-  .login-logo h1 {
-    font-family: 'Syne', sans-serif;
-    font-size: 36px;
-    font-weight: 800;
-    letter-spacing: -1px;
-    background: linear-gradient(135deg, var(--text) 40%, var(--accent));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .login-logo p {
-    color: var(--text2);
-    font-size: 14px;
-    margin-top: 6px;
-  }
+/* ── SECTION ── */
+section { padding: 4.5rem 6vw; }
+.section-eyebrow { font-family: 'Syne', sans-serif; font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.6rem; }
+.section-title { font-family: 'Syne', sans-serif; font-size: clamp(1.7rem, 3vw, 2.4rem); font-weight: 800; letter-spacing: -0.035em; line-height: 1.1; margin-bottom: 0.8rem; }
+.divider { height: 1px; background: var(--border); margin: 0 6vw; }
 
-  .login-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 36px;
-    box-shadow: var(--shadow), 0 0 0 1px rgba(255,255,255,0.02) inset;
-  }
+/* ── MISSION/VISION ── */
+.mv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem; }
+.mv-card {
+  padding: 2rem; border-radius: 18px;
+  background: var(--card); border: 1px solid var(--border);
+  position: relative; overflow: hidden;
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+.mv-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.mv-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+.mv-card.mission::before { background: var(--accent); }
+.mv-card.vision::before  { background: var(--accent2); }
+.mv-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; margin-bottom: 1rem; }
+.mission .mv-icon { background: rgba(232,76,43,0.1); }
+.vision  .mv-icon { background: rgba(43,107,232,0.1); }
+.mv-card h3 { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 0.6rem; }
+.mv-card p  { color: var(--muted); line-height: 1.75; font-size: 0.9rem; }
 
-  .login-card h2 {
-    font-family: 'Syne', sans-serif;
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 6px;
-    color: var(--text);
-  }
-  .login-card .subtitle {
-    font-size: 13px;
-    color: var(--text2);
-    margin-bottom: 28px;
-  }
+/* ── CERTS ── */
+.certs-row { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 2rem; }
+.cert-chip {
+  display: flex; align-items: center; gap: 0.75rem;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 0.9rem 1.2rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cert-chip:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.cert-icon { width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+.cert-chip h4 { font-family: 'Syne', sans-serif; font-size: 0.82rem; font-weight: 700; margin-bottom: 0.1rem; }
+.cert-chip p  { font-size: 0.72rem; color: var(--muted); }
 
-  .form-group {
-    margin-bottom: 18px;
-  }
-  .form-group label {
-    display: block;
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    color: var(--text2);
-    margin-bottom: 8px;
-    font-family: 'DM Mono', monospace;
-  }
-  .form-group input, .form-group select, .form-group textarea {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius2);
-    padding: 12px 14px;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    outline: none;
-  }
-  .form-group input::placeholder { color: var(--text3); }
-  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(79,138,255,0.12);
-  }
-  .form-group select option { background: var(--surface2); }
-  .form-group textarea { resize: vertical; min-height: 90px; }
+/* ── CONTACT ── */
+.contact-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.2rem; margin-top: 2rem; }
+.contact-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 1.4rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.contact-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.contact-icon { width: 42px; height: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 0.8rem; }
+.contact-card h4 { font-family: 'Syne', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+.contact-card p  { font-size: 0.9rem; line-height: 1.65; }
 
-  .btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 12px 20px;
-    border-radius: var(--radius2);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: all 0.2s;
-    text-decoration: none;
-  }
-  .btn-primary {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: white;
-    width: 100%;
-    justify-content: center;
-    padding: 14px;
-    font-size: 15px;
-    border-radius: 10px;
-    box-shadow: 0 4px 20px rgba(79,138,255,0.3);
-  }
-  .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 24px rgba(79,138,255,0.4);
-  }
-  .btn-primary:active { transform: translateY(0); }
-  .btn-sm {
-    padding: 6px 14px;
-    font-size: 12px;
-    border-radius: 6px;
-    font-weight: 500;
-  }
-  .btn-accept { background: rgba(34,211,160,0.15); color: var(--accent-green); border: 1px solid rgba(34,211,160,0.3); }
-  .btn-accept:hover { background: rgba(34,211,160,0.25); }
-  .btn-resolve { background: rgba(79,138,255,0.15); color: var(--accent); border: 1px solid rgba(79,138,255,0.3); }
-  .btn-resolve:hover { background: rgba(79,138,255,0.25); }
-  .btn-edit { background: rgba(245,166,35,0.15); color: var(--accent-amber); border: 1px solid rgba(245,166,35,0.3); }
-  .btn-edit:hover { background: rgba(245,166,35,0.25); }
-  .btn-outline {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text2);
-    font-size: 13px;
-  }
-  .btn-outline:hover { border-color: var(--border2); color: var(--text); }
-  .btn-danger { background: rgba(255,92,92,0.15); color: var(--accent-red); border: 1px solid rgba(255,92,92,0.3); }
-  .btn-danger:hover { background: rgba(255,92,92,0.25); }
+/* ── FOOTER CTA ── */
+.footer-cta {
+  margin: 0 6vw 4rem; background: var(--ink); border-radius: 22px;
+  padding: 3rem; display: flex; justify-content: space-between; align-items: center;
+  gap: 2rem; position: relative; overflow: hidden;
+}
+.footer-cta::before {
+  content: ''; position: absolute; right: -80px; top: -80px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(232,76,43,0.25) 0%, transparent 65%);
+  pointer-events: none;
+}
+.footer-cta h2 { font-family: 'Syne', sans-serif; font-size: clamp(1.4rem, 2.5vw, 2rem); font-weight: 800; color: var(--cream); letter-spacing: -0.03em; max-width: 380px; }
+.footer-cta h2 span { color: var(--accent); }
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: var(--accent); color: #fff;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.88rem;
+  letter-spacing: 0.04em; padding: 0.85rem 1.8rem;
+  border-radius: 12px; border: none; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(232,76,43,0.35);
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s; white-space: nowrap;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(232,76,43,0.45); background: #d43f20; }
+.btn-light {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: var(--cream); color: var(--ink);
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.88rem;
+  letter-spacing: 0.04em; padding: 0.85rem 1.8rem;
+  border-radius: 12px; border: none; cursor: pointer; white-space: nowrap;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-light:hover { transform: scale(1.04); box-shadow: 0 4px 20px rgba(255,255,255,0.25); }
 
-  .login-error {
-    background: rgba(255,92,92,0.1);
-    border: 1px solid rgba(255,92,92,0.3);
-    border-radius: var(--radius2);
-    padding: 10px 14px;
-    color: var(--accent-red);
-    font-size: 13px;
-    margin-bottom: 18px;
-    display: none;
-  }
+/* ── APPLY PAGE ── */
+.apply-header { padding: 4rem 6vw 2rem; border-bottom: 1px solid var(--border); }
+.back-btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: transparent; border: 1.5px solid var(--border);
+  color: var(--ink); font-family: 'Syne', sans-serif; font-weight: 600; font-size: 0.78rem;
+  letter-spacing: 0.05em; padding: 0.5rem 1.1rem; border-radius: 99px; cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s; margin-bottom: 1.5rem;
+}
+.back-btn:hover { background: var(--ink); border-color: var(--ink); color: var(--cream); transform: translateX(-2px); }
+.apply-header h1 { font-family: 'Syne', sans-serif; font-size: clamp(1.8rem, 3.5vw, 3rem); font-weight: 800; letter-spacing: -0.04em; margin-bottom: 0.5rem; }
+.apply-header p  { color: var(--muted); font-size: 0.95rem; max-width: 520px; line-height: 1.7; }
 
-  /* ═══════════════════════════════════════
-     NAVBAR
-  ═══════════════════════════════════════ */
-  .navbar {
-    position: sticky; top: 0; z-index: 100;
-    background: rgba(10,12,16,0.85);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-    height: 60px;
-    display: flex; align-items: center; justify-content: space-between;
-    flex-shrink: 0;
-  }
-  .navbar-brand {
-    display: flex; align-items: center; gap: 10px;
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 18px;
-    letter-spacing: -0.5px;
-  }
-  .navbar-brand .dot {
-    width: 8px; height: 8px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border-radius: 50%;
-    box-shadow: 0 0 8px var(--accent);
-  }
-  .navbar-right {
-    display: flex; align-items: center; gap: 12px;
-  }
-  .user-chip {
-    display: flex; align-items: center; gap: 8px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 100px;
-    padding: 6px 14px 6px 8px;
-    font-size: 13px;
-  }
-  .user-chip .avatar {
-    width: 26px; height: 26px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px;
-    font-weight: 700;
-    color: white;
-  }
-  .avatar-user { background: linear-gradient(135deg, var(--accent-green), #0ea5e9); }
-  .avatar-admin { background: linear-gradient(135deg, var(--accent), var(--accent2)); }
-  .role-tag {
-    font-size: 10px;
-    font-family: 'DM Mono', monospace;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    color: var(--text3);
-  }
+/* ── JOB CARDS ── */
+.job-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.6rem; padding: 3rem 6vw 5rem; }
+.job-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 22px; overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+  display: flex; flex-direction: column;
+}
+.job-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+.job-card-header { padding: 2.2rem 1.8rem 1.5rem; }
+.job-card.it  .job-card-header { background: linear-gradient(135deg,#0d0d0f 0%,#1e2a4a 100%); }
+.job-card.hr  .job-card-header { background: linear-gradient(135deg,#e84c2b 0%,#f5856a 100%); }
+.job-card.ops .job-card-header { background: linear-gradient(135deg,#2b6be8 0%,#5d94f5 100%); }
+.job-card-emoji { font-size: 2.2rem; margin-bottom: 0.9rem; display: block; }
+.job-card-header h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; color: #fff; letter-spacing: -0.03em; }
+.job-card-header p  { color: rgba(255,255,255,0.7); font-size: 0.82rem; margin-top: 0.25rem; }
+.job-card-body { padding: 1.4rem 1.8rem 1.8rem; flex: 1; display: flex; flex-direction: column; }
+.role-item { display: flex; align-items: center; justify-content: space-between; padding: 0.65rem 0; border-bottom: 1px solid var(--border); font-size: 0.87rem; }
+.role-item:last-of-type { border-bottom: none; }
+.role-name { font-weight: 500; }
+.role-tag { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; padding: 0.22rem 0.65rem; border-radius: 99px; }
+.tag-full     { background: rgba(22,163,74,0.1);  color: var(--accent3); }
+.tag-remote   { background: rgba(232,76,43,0.08); color: var(--accent); }
+.tag-hybrid   { background: rgba(43,107,232,0.08);color: var(--accent2); }
+.tag-contract { background: rgba(0,0,0,0.06);     color: var(--muted); }
+.btn-apply-job {
+  margin-top: 1.4rem; width: 100%; padding: 0.8rem;
+  border-radius: 11px; border: none;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem;
+  letter-spacing: 0.04em; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.btn-apply-job:hover { opacity: 0.85; transform: scale(1.02); }
+.job-card.it  .btn-apply-job { background: var(--ink);    color: var(--cream); }
+.job-card.hr  .btn-apply-job { background: var(--accent);  color: #fff; }
+.job-card.ops .btn-apply-job { background: var(--accent2); color: #fff; }
 
-  /* ═══════════════════════════════════════
-     DASHBOARD LAYOUT
-  ═══════════════════════════════════════ */
-  .dashboard-content {
-    padding: 32px 24px;
-    max-width: 1400px;
-    margin: 0 auto;
-    width: 100%;
-    flex: 1;
-  }
+/* ── APPLICATION FORM ── */
+.form-screen { max-width: 660px; margin: 0 auto; padding: 3.5rem 6vw; }
+.form-screen h2 { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.4rem; }
+.form-screen p.sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; }
+.form-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); }
+.form-group { margin-bottom: 1.1rem; }
+.form-group label { display: block; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+.form-group input, .form-group select {
+  width: 100%; padding: 0.7rem 1rem; border-radius: 10px;
+  border: 1.5px solid var(--border); background: var(--cream);
+  font-family: 'DM Sans', sans-serif; font-size: 0.92rem; color: var(--ink);
+  outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-group input:focus, .form-group select:focus {
+  border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,76,43,0.1);
+}
+.form-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+.form-hint { font-size: 0.78rem; color: var(--muted); margin-top: 0.3rem; }
 
-  .page-header {
-    margin-bottom: 32px;
-  }
-  .page-header h1 {
-    font-family: 'Syne', sans-serif;
-    font-size: 28px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    margin-bottom: 4px;
-  }
-  .page-header p {
-    color: var(--text2);
-    font-size: 14px;
-  }
+/* ── ASSESSMENT SCREEN ── */
+.assessment-wrap { max-width: 720px; margin: 0 auto; padding: 2.5rem 6vw; }
 
-  /* ═══════════════════════════════════════
-     STATS ROW
-  ═══════════════════════════════════════ */
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 16px;
-    margin-bottom: 32px;
-  }
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    position: relative;
-    overflow: hidden;
-    transition: border-color 0.2s, transform 0.2s;
-    border-top: 2px solid var(--accent);
-  }
-  .stat-card:hover { border-color: var(--border2); transform: translateY(-2px); }
-  .stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: inherit;
-    display: none;
-  }
-  .stat-card .num {
-    font-family: 'Syne', sans-serif;
-    font-size: 32px;
-    font-weight: 800;
-    line-height: 1;
-    margin-bottom: 6px;
-  }
-  .stat-card .lbl {
-    font-size: 12px;
-    color: var(--text2);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-family: 'DM Mono', monospace;
-  }
-  .num-blue { color: var(--accent); }
-  .num-green { color: var(--accent-green); }
-  .num-amber { color: var(--accent-amber); }
-  .num-red { color: var(--accent-red); }
+/* NEW v2: Timer bar */
+.exam-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.6rem; gap: 1rem;
+}
+.timer-block {
+  display: flex; align-items: center; gap: 0.6rem;
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: 12px; padding: 0.55rem 1.1rem;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem;
+  letter-spacing: 0.04em; transition: border-color 0.3s, background 0.3s;
+}
+.timer-block.warn   { border-color: var(--timer-warn);   background: rgba(245,166,35,0.08); color: var(--timer-warn); }
+.timer-block.danger { border-color: var(--timer-danger); background: rgba(220,38,38,0.08);  color: var(--timer-danger); animation: timerPulse 0.8s ease-in-out infinite; }
+@keyframes timerPulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+.timer-icon { font-size: 1rem; }
+.timer-label { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 
-  /* ═══════════════════════════════════════
-     CARD / PANEL
-  ═══════════════════════════════════════ */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-  }
-  .card-header {
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 12px;
-  }
-  .card-header h2 {
-    font-family: 'Syne', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-  }
+/* NEW v2: Violation badge */
+.violation-badge {
+  display: flex; align-items: center; gap: 0.4rem;
+  background: rgba(220,38,38,0.08); border: 1.5px solid rgba(220,38,38,0.2);
+  color: #dc2626; border-radius: 10px; padding: 0.45rem 0.9rem;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+.violation-badge.hidden { display: none; }
 
-  /* ═══════════════════════════════════════
-     SUBMIT TICKET FORM (END USER)
-  ═══════════════════════════════════════ */
-  .ticket-form {
-    padding: 24px;
-  }
-  .form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-  .form-grid .full { grid-column: 1/-1; }
+/* Progress */
+.progress-header { margin-bottom: 1.5rem; }
+.progress-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
+.progress-label { font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.progress-fraction { font-size: 0.8rem; color: var(--muted); }
+.progress-bar { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #f5a623); border-radius: 99px; transition: width 0.5s cubic-bezier(.4,0,.2,1); }
 
-  .submit-success {
-    display: none;
-    background: rgba(34,211,160,0.08);
-    border: 1px solid rgba(34,211,160,0.25);
-    border-radius: var(--radius2);
-    padding: 16px 20px;
-    color: var(--accent-green);
-    margin-bottom: 20px;
-    font-size: 14px;
-    align-items: center;
-    gap: 10px;
-  }
-  .submit-success.show { display: flex; }
+/* Category tabs */
+.cat-tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
+.cat-tab {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.5rem 1rem; border-radius: 99px; border: 1.5px solid var(--border);
+  font-family: 'Syne', sans-serif; font-size: 0.75rem; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase; cursor: default;
+  color: var(--muted); background: var(--card); transition: all 0.2s;
+}
+.cat-tab.done   { background: rgba(22,163,74,0.1);  border-color: rgba(22,163,74,0.3); color: var(--accent3); }
+.cat-tab.active { background: var(--ink); border-color: var(--ink); color: var(--cream); }
+.cat-tab .tab-check { font-size: 0.85rem; }
 
-  /* ═══════════════════════════════════════
-     TICKETS LIST (END USER)
-  ═══════════════════════════════════════ */
-  .tickets-list {
-    padding: 16px 24px 24px;
-  }
-  .ticket-item {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius2);
-    padding: 16px 20px;
-    margin-bottom: 12px;
-    display: grid;
-    grid-template-columns: auto 1fr auto auto;
-    gap: 12px 16px;
-    align-items: start;
-    transition: border-color 0.2s;
-  }
-  .ticket-item:hover { border-color: var(--border2); }
-  .ticket-id-badge {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--accent);
-    background: rgba(79,138,255,0.1);
-    border: 1px solid rgba(79,138,255,0.2);
-    padding: 4px 8px;
-    border-radius: 4px;
-    white-space: nowrap;
-    margin-top: 2px;
-  }
-  .ticket-info h3 {
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
-  .ticket-info .meta {
-    font-size: 12px;
-    color: var(--text2);
-    display: flex; gap: 12px; flex-wrap: wrap;
-  }
-  .ticket-info .meta span { display: flex; align-items: center; gap: 4px; }
+/* Question card */
+.q-section-header { margin-bottom: 1.5rem; }
+.q-section-badge {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-family: 'Syne', sans-serif; font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 0.3rem 0.8rem; border-radius: 99px; margin-bottom: 0.8rem;
+}
+.badge-conf  { background: rgba(232,76,43,0.1);  color: var(--accent); }
+.badge-integ { background: rgba(43,107,232,0.1);  color: var(--accent2); }
+.badge-acct  { background: rgba(22,163,74,0.1);   color: var(--accent3); }
+.q-section-header h3 { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; letter-spacing: -0.025em; }
+.q-section-header p  { color: var(--muted); font-size: 0.88rem; margin-top: 0.3rem; }
+.q-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 2rem; margin-bottom: 1.5rem; box-shadow: var(--shadow); animation: fadeUp 0.3s ease forwards; }
+.q-num { font-family: 'Syne', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.7rem; }
+.q-text { font-size: 0.97rem; line-height: 1.7; font-weight: 500; margin-bottom: 1.4rem; }
+.choices { display: flex; flex-direction: column; gap: 0.6rem; }
+.choice-btn {
+  display: flex; align-items: flex-start; gap: 0.9rem;
+  padding: 0.85rem 1.1rem; border-radius: 11px;
+  border: 1.5px solid var(--border); background: var(--cream);
+  cursor: pointer; text-align: left; font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem; line-height: 1.5; color: var(--ink);
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+}
+.choice-btn:hover   { border-color: var(--accent); background: rgba(232,76,43,0.04); transform: translateX(2px); }
+.choice-btn.selected{ border-color: var(--accent); background: rgba(232,76,43,0.07); }
+.choice-letter {
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--border); display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-size: 0.7rem; font-weight: 700; color: var(--muted);
+  transition: background 0.2s, color 0.2s; margin-top: 1px;
+}
+.choice-btn.selected .choice-letter { background: var(--accent); color: #fff; }
+.nav-btns { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; gap: 1rem; }
+.btn-ghost {
+  background: transparent; border: 1.5px solid var(--border); color: var(--muted);
+  font-family: 'Syne', sans-serif; font-weight: 600; font-size: 0.8rem;
+  letter-spacing: 0.05em; padding: 0.65rem 1.3rem; border-radius: 10px; cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-ghost:hover { border-color: var(--ink); color: var(--ink); background: rgba(0,0,0,0.04); }
+.btn-next {
+  background: var(--ink); color: var(--cream);
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem;
+  letter-spacing: 0.05em; padding: 0.65rem 1.8rem; border-radius: 10px; border: none;
+  cursor: pointer; transition: background 0.2s, transform 0.15s;
+}
+.btn-next:hover   { background: var(--accent); transform: scale(1.03); }
+.btn-next:disabled{ opacity: 0.45; cursor: not-allowed; transform: none; }
+.q-counter { font-size: 0.8rem; color: var(--muted); }
 
-  /* STATUS BADGES */
-  .status-badge {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 4px 10px;
-    border-radius: 100px;
-    font-size: 11px;
-    font-weight: 600;
-    font-family: 'DM Mono', monospace;
-    letter-spacing: 0.3px;
-    white-space: nowrap;
-  }
-  .status-badge::before {
-    content: '';
-    width: 5px; height: 5px;
-    border-radius: 50%;
-  }
-  .s-open { background: rgba(245,166,35,0.1); color: var(--accent-amber); border: 1px solid rgba(245,166,35,0.25); }
-  .s-open::before { background: var(--accent-amber); }
-  .s-accepted { background: rgba(79,138,255,0.1); color: var(--accent); border: 1px solid rgba(79,138,255,0.25); }
-  .s-accepted::before { background: var(--accent); box-shadow: 0 0 4px var(--accent); animation: pulse 1.5s infinite; }
-  .s-resolved { background: rgba(34,211,160,0.1); color: var(--accent-green); border: 1px solid rgba(34,211,160,0.25); }
-  .s-resolved::before { background: var(--accent-green); }
-  .s-closed { background: rgba(90,100,120,0.1); color: var(--text3); border: 1px solid rgba(90,100,120,0.2); }
-  .s-closed::before { background: var(--text3); }
+/* NEW v2: Anti-cheat warning overlay */
+.anticheat-overlay {
+  display: none; position: fixed; inset: 0; z-index: 9998;
+  background: rgba(13,13,15,0.85); backdrop-filter: blur(8px);
+  align-items: center; justify-content: center;
+}
+.anticheat-overlay.visible { display: flex; }
+.anticheat-modal {
+  background: var(--card); border-radius: 20px; padding: 2.5rem 2.2rem;
+  max-width: 440px; width: 90%; text-align: center;
+  border: 2px solid rgba(220,38,38,0.3);
+  box-shadow: 0 20px 60px rgba(220,38,38,0.2);
+  animation: fadeUp 0.3s ease;
+}
+.anticheat-icon { font-size: 2.8rem; margin-bottom: 1rem; }
+.anticheat-modal h3 { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; color: #dc2626; margin-bottom: 0.6rem; }
+.anticheat-modal p  { font-size: 0.9rem; color: var(--muted); line-height: 1.7; margin-bottom: 1.4rem; }
+.anticheat-count { font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 700; color: #dc2626; margin-bottom: 1.2rem; }
+.btn-resume {
+  background: var(--ink); color: var(--cream);
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem;
+  padding: 0.8rem 2rem; border-radius: 11px; border: none; cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+.btn-resume:hover { background: var(--accent); transform: scale(1.03); }
 
-  @keyframes pulse {
-    0%,100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
+/* ── RESULTS SCREEN ── */
+.results-wrap { max-width: 700px; margin: 0 auto; padding: 3rem 6vw; }
+.results-hero {
+  text-align: center; margin-bottom: 2.5rem; padding: 3rem 2rem;
+  background: var(--ink); border-radius: 24px; position: relative; overflow: hidden;
+}
+.results-hero::before {
+  content: ''; position: absolute; top: -80px; right: -80px;
+  width: 280px; height: 280px;
+  background: radial-gradient(circle, rgba(232,76,43,0.3) 0%, transparent 65%);
+}
+.results-hero h2 { font-family: 'Syne', sans-serif; font-size: clamp(1.6rem,3vw,2.4rem); font-weight: 800; color: var(--cream); letter-spacing: -0.03em; margin-bottom: 0.4rem; }
+.results-hero p  { color: rgba(245,242,236,0.65); font-size: 0.92rem; }
+.big-score { font-family: 'Syne', sans-serif; font-size: 4.5rem; font-weight: 800; color: var(--accent); line-height: 1; margin: 1rem 0 0.2rem; }
+.big-score-label { color: rgba(245,242,236,0.5); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.score-breakdown { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 2rem; }
+.score-cat-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.4rem 1.2rem; text-align: center; }
+.score-cat-name { font-family: 'Syne', sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+.score-cat-val  { font-family: 'Syne', sans-serif; font-size: 1.7rem; font-weight: 800; letter-spacing: -0.03em; }
+.score-cat-val.high   { color: var(--accent3); }
+.score-cat-val.medium { color: #f5a623; }
+.score-cat-val.low    { color: #dc2626; }
+.score-cat-sub { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; }
+.applicant-summary-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.6rem; margin-bottom: 1.5rem; }
+.applicant-summary-card h4 { font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 1rem; }
+.summary-row { display: flex; justify-content: space-between; padding: 0.55rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.summary-row:last-child { border-bottom: none; }
+.summary-key { color: var(--muted); }
+.summary-val { font-weight: 500; }
+.confirm-box {
+  background: rgba(22,163,74,0.08); border: 1.5px solid rgba(22,163,74,0.25);
+  border-radius: 14px; padding: 1.4rem;
+  display: flex; align-items: flex-start; gap: 0.9rem; margin-bottom: 2rem;
+}
+.confirm-box .check { font-size: 1.3rem; flex-shrink: 0; margin-top: 0.1rem; }
+.confirm-box h4 { font-family: 'Syne', sans-serif; font-size: 0.92rem; font-weight: 700; margin-bottom: 0.25rem; color: var(--accent3); }
+.confirm-box p  { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+.results-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+.btn-home {
+  flex: 1; padding: 0.85rem; border-radius: 11px; border: 1.5px solid var(--border);
+  background: transparent; color: var(--ink);
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem;
+  letter-spacing: 0.04em; cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+}
+.btn-home:hover { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+.btn-submit-final {
+  flex: 2; padding: 0.85rem; border-radius: 11px; border: none;
+  background: var(--accent3); color: #fff;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem;
+  letter-spacing: 0.04em; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  box-shadow: 0 4px 16px rgba(22,163,74,0.3); transition: all 0.2s;
+}
+.btn-submit-final:hover   { background: #15803d; transform: translateY(-2px); box-shadow: 0 6px 24px rgba(22,163,74,0.4); }
+.btn-submit-final:disabled{ opacity: 0.5; cursor: not-allowed; transform: none; }
+.submitting-box, .submitted-box {
+  text-align: center; padding: 1.5rem;
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  font-family: 'Syne', sans-serif; font-weight: 600; font-size: 0.9rem;
+}
+.spinner {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 3px solid var(--border); border-top-color: var(--accent);
+  animation: spin 0.7s linear infinite; margin: 0 auto 0.8rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ═══════════════════════════════════════
-     ADMIN TABLE
-  ═══════════════════════════════════════ */
-  .table-wrap {
-    overflow-x: auto;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  thead th {
-    text-align: left;
-    padding: 10px 16px;
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--text3);
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-    background: var(--surface2);
-  }
-  thead th:first-child { border-radius: 0; }
-  tbody tr {
-    border-bottom: 1px solid var(--border);
-    transition: background 0.15s;
-  }
-  tbody tr:hover { background: var(--surface2); }
-  tbody tr:last-child { border-bottom: none; }
-  td {
-    padding: 14px 16px;
-    vertical-align: top;
-    color: var(--text);
-  }
-  td .cell-label {
-    font-size: 12px;
-    color: var(--text2);
-    margin-bottom: 2px;
-  }
-  .actions-cell { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-  .actions-cell .btn-sm { font-size: 11px; padding: 5px 10px; }
+/* NEW v2: Admin Analytics Dashboard screen */
+.admin-wrap { max-width: 960px; margin: 0 auto; padding: 2.5rem 6vw 5rem; }
+.admin-wrap h1 { font-family: 'Syne', sans-serif; font-size: clamp(1.8rem,3vw,2.6rem); font-weight: 800; letter-spacing: -0.04em; margin-bottom: 0.4rem; }
+.admin-wrap .admin-sub { color: var(--muted); font-size: 0.92rem; margin-bottom: 2.5rem; }
+.stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1.2rem; margin-bottom: 2.5rem; }
+.stat-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 1.4rem 1.2rem;
+  position: relative; overflow: hidden;
+}
+.stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+.stat-card.c1::before { background: var(--accent2); }
+.stat-card.c2::before { background: var(--accent3); }
+.stat-card.c3::before { background: var(--accent); }
+.stat-card.c4::before { background: #7c3aed; }
+.stat-card-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
+.stat-card-val { font-family: 'Syne', sans-serif; font-size: 2.2rem; font-weight: 800; letter-spacing: -0.04em; }
+.stat-card-sub { font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem; }
+.analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+.chart-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 1.6rem; }
+.chart-card h3 { font-family: 'Syne', sans-serif; font-size: 0.88rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.2rem; }
+.bar-chart { display: flex; flex-direction: column; gap: 0.8rem; }
+.bar-row { display: flex; align-items: center; gap: 0.8rem; font-size: 0.82rem; }
+.bar-label { width: 90px; flex-shrink: 0; font-weight: 500; }
+.bar-track { flex: 1; height: 10px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 99px; transition: width 1s cubic-bezier(.4,0,.2,1); }
+.bar-val { width: 34px; text-align: right; font-weight: 600; color: var(--muted); font-size: 0.78rem; }
+.donut-wrap { display: flex; align-items: center; justify-content: center; gap: 2rem; }
+.donut-legend { display: flex; flex-direction: column; gap: 0.6rem; }
+.legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.top-list { list-style: none; }
+.top-list li {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.65rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem;
+}
+.top-list li:last-child { border-bottom: none; }
+.top-rank { font-family: 'Syne', sans-serif; font-weight: 800; color: var(--accent); width: 24px; }
+.top-name { flex: 1; font-weight: 500; }
+.top-score { font-family: 'Syne', sans-serif; font-weight: 700; }
+.admin-table-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; margin-bottom: 2rem; }
+.admin-table-card h3 { font-family: 'Syne', sans-serif; font-size: 0.88rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 1.2rem 1.6rem; border-bottom: 1px solid var(--border); }
+.admin-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.admin-table th { background: var(--cream); font-family: 'Syne', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0.7rem 1rem; text-align: left; }
+.admin-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+.admin-table tr:last-child td { border-bottom: none; }
+.score-pill { display: inline-block; padding: 0.2rem 0.65rem; border-radius: 99px; font-family: 'Syne', sans-serif; font-size: 0.72rem; font-weight: 700; }
+.pill-high   { background: rgba(22,163,74,0.12);  color: var(--accent3); }
+.pill-mid    { background: rgba(245,166,35,0.12);  color: #b45309; }
+.pill-low    { background: rgba(220,38,38,0.1);    color: #dc2626; }
 
-  /* ═══════════════════════════════════════
-     MODAL
-  ═══════════════════════════════════════ */
-  .modal-overlay {
-    display: none;
-    position: fixed; inset: 0; z-index: 200;
-    background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(4px);
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 32px;
-    width: 100%;
-    max-width: 520px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
-    animation: fadeSlideUp 0.3s ease both;
-  }
-  .modal h2 {
-    font-family: 'Syne', sans-serif;
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 4px;
-  }
-  .modal .modal-sub {
-    font-size: 13px;
-    color: var(--text2);
-    margin-bottom: 20px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--border);
-  }
-  .modal-section-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--text3);
-    margin: 16px 0 10px;
-  }
-  .modal-footer {
-    display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px;
-  }
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999;
+  background: var(--ink); color: var(--cream);
+  padding: 0.9rem 1.4rem; border-radius: 12px;
+  font-family: 'Syne', sans-serif; font-weight: 600; font-size: 0.85rem;
+  display: flex; align-items: center; gap: 0.5rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  transform: translateY(80px); opacity: 0;
+  transition: transform 0.35s cubic-bezier(.34,1.56,.64,1), opacity 0.3s;
+  pointer-events: none;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
 
-  /* ═══════════════════════════════════════
-     SEARCH / FILTER BAR
-  ═══════════════════════════════════════ */
-  .filter-bar {
-    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
-  }
-  .filter-bar input, .filter-bar select {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius2);
-    padding: 8px 12px;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .filter-bar input:focus, .filter-bar select:focus { border-color: var(--accent); }
-  .filter-bar input { min-width: 200px; }
-
-  /* ═══════════════════════════════════════
-     EMPTY STATE
-  ═══════════════════════════════════════ */
-  .empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text3);
-  }
-  .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
-  .empty-state h3 { font-size: 16px; color: var(--text2); margin-bottom: 6px; }
-  .empty-state p { font-size: 13px; }
-
-  /* ═══════════════════════════════════════
-     TOAST
-  ═══════════════════════════════════════ */
-  .toast-container {
-    position: fixed; bottom: 24px; right: 24px; z-index: 300;
-    display: flex; flex-direction: column; gap: 8px;
-  }
-  .toast {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 16px;
-    font-size: 13px;
-    display: flex; align-items: center; gap: 10px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-    animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.7s both;
-    max-width: 300px;
-  }
-  .toast-success { border-color: rgba(34,211,160,0.3); color: var(--accent-green); }
-  .toast-error { border-color: rgba(255,92,92,0.3); color: var(--accent-red); }
-  .toast-info { border-color: rgba(79,138,255,0.3); color: var(--accent); }
-
-  /* ═══════════════════════════════════════
-     TICKET DETAIL VIEW
-  ═══════════════════════════════════════ */
-  .detail-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-  .detail-field { }
-  .detail-field .df-label {
-    font-size: 10px;
-    font-family: 'DM Mono', monospace;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text3);
-    margin-bottom: 4px;
-  }
-  .detail-field .df-value {
-    font-size: 14px;
-    color: var(--text);
-  }
-  .detail-field.full { grid-column: 1/-1; }
-
-
-
-  /* ═══════════════════════════════════════
-     ANIMATIONS
-  ═══════════════════════════════════════ */
-  
-
-  @keyframes fadeSlideUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes slideInRight {
-    from { opacity: 0; transform: translateX(20px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-  @keyframes fadeOut {
-    from { opacity: 1; } to { opacity: 0; }
-  }
-
-  /* ═══════════════════════════════════════
-     RESPONSIVE
-  ═══════════════════════════════════════ */
-  @media (max-width: 768px) {
-    .form-grid { grid-template-columns: 1fr; }
-    .form-grid .full { grid-column: 1; }
-    .stats-row { grid-template-columns: 1fr 1fr; }
-    .ticket-item { grid-template-columns: 1fr auto; }
-    .ticket-id-badge { display: none; }
-    .dashboard-content { padding: 20px 16px; }
-    .card-header { flex-direction: column; align-items: flex-start; }
-    .detail-grid { grid-template-columns: 1fr; }
-    .detail-field.full { grid-column: 1; }
-    table { min-width: 800px; }
-  }
-
-  /* ═══════════════════════════════════════
-     SYNC INDICATOR
-  ═══════════════════════════════════════ */
-  .sync-indicator {
-    display: inline-flex; align-items: center; gap: 6px;
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--text3);
-  }
-  .sync-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--accent-green);
-    box-shadow: 0 0 6px var(--accent-green);
-    animation: pulse 2s infinite;
-  }
-  .sync-dot.syncing { background: var(--accent-amber); box-shadow: 0 0 6px var(--accent-amber); }
-  .sync-dot.error { background: var(--accent-red); box-shadow: 0 0 6px var(--accent-red); animation: none; }
-
-  .tab-row {
-    display: flex; gap: 4px;
-    background: var(--surface2);
-    border-radius: 8px;
-    padding: 4px;
-    margin-bottom: 24px;
-  }
-  .tab-btn {
-    flex: 1; padding: 8px 16px;
-    border-radius: 6px;
-    border: none;
-    background: none;
-    color: var(--text2);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .tab-btn.active {
-    background: var(--surface3);
-    color: var(--text);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  }
-
-  .section { display: none; }
-  .section.active { display: block; animation: fadeSlideUp 0.3s ease both; }
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .mv-grid,.analytics-grid { grid-template-columns:1fr; }
+  .contact-grid { grid-template-columns:1fr; }
+  .footer-cta { flex-direction:column; text-align:center; }
+  .job-grid { grid-template-columns:1fr; }
+  .score-breakdown { grid-template-columns:1fr; }
+  .stat-grid { grid-template-columns:1fr 1fr; }
+}
+@media(max-width:600px){
+  nav { padding:0.9rem 5vw; }
+  .hero,.section { padding-left:5vw; padding-right:5vw; }
+  section { padding:3rem 5vw; }
+  .divider { margin:0 5vw; }
+  .footer-cta { margin:0 5vw 3rem; padding:2rem; }
+  .form-row2 { grid-template-columns:1fr; }
+  .cat-tabs { gap:0.4rem; }
+  .results-actions { flex-direction:column; }
+  .btn-submit-final,.btn-home { flex:none; width:100%; }
+  .stat-grid { grid-template-columns:1fr; }
+  .exam-topbar { flex-wrap:wrap; }
+}
 </style>
 </head>
 <body>
 
-<div class="bg-mesh"></div>
-<div class="bg-grid"></div>
-
-<!-- ══════════════════════════════════════
-     LOGIN PAGE
-══════════════════════════════════════ -->
-<div id="login-page" class="page active">
-  <div class="login-container">
-    <div class="login-logo">
-      <div class="badge">HelpDesk Pro</div>
-      <h1>Ticketing System</h1>
-      <p>Sign in to access your dashboard</p>
+<!-- ═══ SCREEN 1: HOME ═══ -->
+<div id="s-home" class="screen active">
+  <nav>
+    <div class="logo">Kenn<span>Corp</span></div>
+    <div style="display:flex;align-items:center;gap:0.7rem">
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode" title="Toggle Light / Dark mode">
+        <span class="theme-icon-sun">&#9728;</span>
+        <span class="theme-icon-moon">&#9790;</span>
+      </button>
+      <button class="nav-btn" onclick="show('s-apply')">View Openings &rarr;</button>
     </div>
-    <div class="login-card">
-      <h2>Welcome back</h2>
-      <p class="subtitle">Enter your credentials to continue</p>
-      <div style="display:none" id="login-system-info"></div>
-      <div class="login-error" id="login-error">
-        ⚠ Incorrect username or password. Please try again.
+  </nav>
+
+  <div class="hero">
+    <div class="hero-eyebrow">Now Hiring</div>
+    <h1>Build the <em>Future</em><br>With Us.</h1>
+    <p class="hero-sub">Join a team of driven innovators shaping the next era of enterprise technology. We're looking for bold thinkers across every discipline.</p>
+    <button class="btn-primary" onclick="show('s-apply')">
+      Explore Open Roles
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M3 7.5h9M9 4l3.5 3.5L9 11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="hero-stats" style="margin-top:2.5rem">
+      <div><span class="stat-num">1,200+</span><span class="stat-label">Employees</span></div>
+      <div><span class="stat-num">34</span><span class="stat-label">Offices</span></div>
+      <div><span class="stat-num">98%</span><span class="stat-label">Retention</span></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <section>
+    <div class="section-eyebrow">Who We Are</div>
+    <h2 class="section-title">Pioneering enterprise<br>solutions since 2004.</h2>
+    <p style="color:var(--muted);max-width:600px;line-height:1.8;font-size:0.94rem">KennCorp is a global technology company delivering end-to-end digital transformation, HR consulting, and operational excellence to Fortune 500 clients. We combine cutting-edge engineering with deep human insight to create systems that scale.</p>
+  </section>
+
+  <div class="divider"></div>
+
+  <section>
+    <div class="section-eyebrow">What Drives Us</div>
+    <h2 class="section-title">Mission &amp; Vision</h2>
+    <div class="mv-grid">
+      <div class="mv-card mission">
+        <div class="mv-icon">&#127919;</div>
+        <h3>Our Mission</h3>
+        <p>To empower organizations worldwide with transformative technology and talent strategies that unlock sustainable growth, operational efficiency, and human potential — delivered with integrity and measurable impact.</p>
       </div>
-      <div class="form-group">
-        <label>Username</label>
-        <input type="text" id="login-username" placeholder="Enter your username" autocomplete="username">
+      <div class="mv-card vision">
+        <div class="mv-icon">&#128301;</div>
+        <h3>Our Vision</h3>
+        <p>To become the world's most trusted enterprise partner — a place where the brightest minds converge to reimagine how businesses operate, connect, and evolve in an increasingly complex digital landscape.</p>
       </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="login-password" placeholder="Enter your password" autocomplete="current-password">
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section>
+    <div class="section-eyebrow">Accreditations</div>
+    <h2 class="section-title">Industry Certifications</h2>
+    <div class="certs-row">
+      <div class="cert-chip"><div class="cert-icon" style="background:rgba(255,153,0,.1);color:#ff9900">&#9729;</div><div><h4>AWS Solutions Architect</h4><p>Amazon Web Services &middot; Professional</p></div></div>
+      <div class="cert-chip"><div class="cert-icon" style="background:rgba(0,114,239,.1);color:#0072ef">&#9670;</div><div><h4>ISO 9001:2015</h4><p>Quality Management Systems</p></div></div>
+      <div class="cert-chip"><div class="cert-icon" style="background:rgba(0,128,0,.1);color:green">&#128274;</div><div><h4>ISO/IEC 27001</h4><p>Information Security Management</p></div></div>
+      <div class="cert-chip"><div class="cert-icon" style="background:rgba(232,76,43,.1);color:var(--accent)">&#127942;</div><div><h4>CMMI Level 5</h4><p>Capability Maturity Model</p></div></div>
+      <div class="cert-chip"><div class="cert-icon" style="background:rgba(43,107,232,.1);color:var(--accent2)">&#127758;</div><div><h4>SOC 2 Type II</h4><p>Security &amp; Availability</p></div></div>
+      <div class="cert-chip"><div class="cert-icon" style="background:rgba(0,0,0,.06);color:var(--ink)">&#9881;</div><div><h4>PMP Certified Teams</h4><p>Project Management Institute</p></div></div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section>
+    <div class="section-eyebrow">Get In Touch</div>
+    <h2 class="section-title">Contact Information</h2>
+    <div class="contact-grid">
+      <div class="contact-card"><div class="contact-icon" style="background:rgba(232,76,43,.1)">&#128205;</div><h4>Headquarters</h4><p>Cainta, Rizal<br>Philippines</p></div>
+      <div class="contact-card"><div class="contact-icon" style="background:rgba(43,107,232,.1)">&#128231;</div><h4>Email Us</h4><p>kennardwaslo@gmail.com</p></div>
+      <div class="contact-card"><div class="contact-icon" style="background:rgba(0,128,0,.1)">&#128222;</div><h4>Call Us</h4><p>09206411123<br>Mon&ndash;Fri, 8 AM&ndash;5 PM PHT</p></div>
+    </div>
+  </section>
+
+  <div class="footer-cta">
+    <h2>Ready to build something <span>extraordinary</span>?</h2>
+    <button class="btn-light" onclick="show('s-apply')">Apply Now &rarr;</button>
+  </div>
+</div>
+
+<!-- ═══ SCREEN 2: JOB LISTINGS ═══ -->
+<div id="s-apply" class="screen">
+  <nav>
+    <div class="logo">Kenn<span>Corp</span></div>
+    <div style="display:flex;align-items:center;gap:0.7rem">
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+        <span class="theme-icon-sun">&#9728;</span>
+        <span class="theme-icon-moon">&#9790;</span>
+      </button>
+      <button class="nav-btn outline" onclick="show('s-home')">&larr; Home</button>
+    </div>
+  </nav>
+  <div class="apply-header">
+    <button class="back-btn" onclick="show('s-home')">&larr; Back to Home</button>
+    <h1>Open Positions</h1>
+    <p>Select the department you're interested in. You'll fill out a short form and complete a timed 15-question assessment covering Confidentiality, Integrity, and Accountability.</p>
+  </div>
+  <div class="job-grid">
+    <div class="job-card it">
+      <div class="job-card-header">
+        <span class="job-card-emoji">&#128187;</span>
+        <h2>Information Technology</h2>
+        <p>Build the infrastructure of tomorrow</p>
       </div>
-      <button class="btn btn-primary" onclick="handleLogin()">Sign In →</button>
+      <div class="job-card-body">
+        <div class="role-item"><span class="role-name">Cloud Architect</span><span class="role-tag tag-full">Full-time</span></div>
+        <div class="role-item"><span class="role-name">Senior Backend Engineer</span><span class="role-tag tag-full">Full-time</span></div>
+        <div class="role-item"><span class="role-name">DevOps Engineer</span><span class="role-tag tag-remote">Remote</span></div>
+        <div class="role-item"><span class="role-name">Cybersecurity Analyst</span><span class="role-tag tag-contract">Contract</span></div>
+        <button class="btn-apply-job" onclick="startApplication('IT')">Apply for IT Role &rarr;</button>
+      </div>
+    </div>
+    <div class="job-card hr">
+      <div class="job-card-header">
+        <span class="job-card-emoji">&#129309;</span>
+        <h2>Human Resources</h2>
+        <p>Champion our people and culture</p>
+      </div>
+      <div class="job-card-body">
+        <div class="role-item"><span class="role-name">HR Business Partner</span><span class="role-tag tag-full">Full-time</span></div>
+        <div class="role-item"><span class="role-name">Talent Acquisition Lead</span><span class="role-tag tag-full">Full-time</span></div>
+        <div class="role-item"><span class="role-name">L&amp;D Manager</span><span class="role-tag tag-hybrid">Hybrid</span></div>
+        <div class="role-item"><span class="role-name">Compensation Analyst</span><span class="role-tag tag-contract">Contract</span></div>
+        <button class="btn-apply-job" onclick="startApplication('HR')">Apply for HR Role &rarr;</button>
+      </div>
+    </div>
+    <div class="job-card ops">
+      <div class="job-card-header">
+        <span class="job-card-emoji">&#9881;</span>
+        <h2>Operations</h2>
+        <p>Keep the engine running at full speed</p>
+      </div>
+      <div class="job-card-body">
+        <div class="role-item"><span class="role-name">Operations Manager</span><span class="role-tag tag-full">Full-time</span></div>
+        <div class="role-item"><span class="role-name">Supply Chain Analyst</span><span class="role-tag tag-full">Full-time</span></div>
+        <div class="role-item"><span class="role-name">Process Improvement Lead</span><span class="role-tag tag-hybrid">Hybrid</span></div>
+        <div class="role-item"><span class="role-name">Logistics Coordinator</span><span class="role-tag tag-contract">Contract</span></div>
+        <button class="btn-apply-job" onclick="startApplication('Operations')">Apply for Ops Role &rarr;</button>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     END USER DASHBOARD
-══════════════════════════════════════ -->
-<div id="user-page" class="page">
-  <nav class="navbar">
-    <div class="navbar-brand">
-      <div class="dot"></div>
-      HelpDesk Pro
-    </div>
-    <div class="navbar-right">
-      <div class="user-chip">
-        <div class="avatar avatar-user" id="user-avatar">U</div>
-        <span id="user-display">End User</span>
-        <span class="role-tag">USER</span>
-      </div>
-      <button class="btn btn-outline btn-sm" onclick="logout()">Sign out</button>
+<!-- ═══ SCREEN 3: APPLICATION FORM ═══ -->
+<div id="s-form" class="screen">
+  <nav>
+    <div class="logo">Kenn<span>Corp</span></div>
+    <div style="display:flex;align-items:center;gap:0.7rem">
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+        <span class="theme-icon-sun">&#9728;</span>
+        <span class="theme-icon-moon">&#9790;</span>
+      </button>
+      <button class="nav-btn outline" onclick="show('s-apply')">&larr; Back</button>
     </div>
   </nav>
-  <div class="dashboard-content">
-    <div class="page-header">
-      <h1>My Dashboard</h1>
-      <p>Submit and track your support tickets</p>
-    </div>
-
-    <div class="stats-row" id="user-stats">
-      <div class="stat-card"><div class="num num-blue" id="stat-u-total">0</div><div class="lbl">Total Tickets</div></div>
-      <div class="stat-card"><div class="num num-amber" id="stat-u-open">0</div><div class="lbl">Open</div></div>
-      <div class="stat-card"><div class="num num-blue" id="stat-u-accepted">0</div><div class="lbl">In Progress</div></div>
-      <div class="stat-card"><div class="num num-green" id="stat-u-resolved">0</div><div class="lbl">Resolved</div></div>
-    </div>
-
-    <div class="tab-row">
-      <button class="tab-btn active" onclick="switchTab('submit')">Submit Ticket</button>
-      <button class="tab-btn" onclick="switchTab('mytickets')">My Tickets</button>
-    </div>
-
-    <div id="tab-submit" class="section active">
-      <div class="card">
-        <div class="card-header">
-          <h2>New Support Ticket</h2>
-          <div class="sync-indicator">
-            <div class="sync-dot" id="submit-sync-dot"></div>
-            <span id="submit-sync-text">Google Sheets Connected</span>
-          </div>
-        </div>
-        <div class="ticket-form">
-          <div class="submit-success" id="submit-success">
-            ✅ Your ticket has been submitted successfully and synced to Google Sheets!
-          </div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Name of User</label>
-              <input type="text" id="f-name" placeholder="Your full name">
-            </div>
-            <div class="form-group">
-              <label>Site</label>
-              <select id="f-site">
-                <option value="">Select site...</option>
-                <option value="Manila">Manila</option>
-                <option value="Cebu">Cebu</option>
-                <option value="Offsite">Offsite</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Issue / Subject</label>
-              <input type="text" id="f-issue" placeholder="Brief summary of the issue">
-            </div>
-            <div class="form-group full">
-              <label>Description</label>
-              <textarea id="f-desc" placeholder="Describe the issue in detail..."></textarea>
-            </div>
-          </div>
-          <div style="display:flex;justify-content:flex-end;margin-top:8px;">
-            <button class="btn btn-primary" style="width:auto;padding:12px 32px;" onclick="submitTicket()">
-              Submit Ticket →
-            </button>
-          </div>
-        </div>
+  <div class="form-screen">
+    <h2 id="form-title">Apply &mdash; IT</h2>
+    <p class="sub">Step 1 of 2 &mdash; Fill in your details before starting the assessment.</p>
+    <div class="form-card">
+      <div class="form-row2">
+        <div class="form-group"><label>First Name *</label><input id="f-first" type="text" placeholder="Kennard"></div>
+        <div class="form-group"><label>Last Name *</label><input id="f-last" type="text" placeholder="Waslo"></div>
       </div>
-    </div>
-
-    <div id="tab-mytickets" class="section">
-      <div class="card">
-        <div class="card-header">
-          <h2>My Tickets</h2>
-          <button class="btn btn-outline btn-sm" onclick="loadTickets()">⟳ Refresh</button>
-        </div>
-        <div class="tickets-list" id="user-tickets-list">
-          <div class="empty-state">
-            <div class="icon">🎫</div>
-            <h3>No tickets yet</h3>
-            <p>Submit a ticket and it will appear here.</p>
-          </div>
-        </div>
+      <div class="form-group"><label>Email Address *</label><input id="f-email" type="email" placeholder="kennardwaslo@gmail.com"></div>
+      <div class="form-group"><label>Contact Number *</label><input id="f-phone" type="tel" placeholder="+63 9XX XXX XXXX"></div>
+      <div class="form-group">
+        <label>Position of Interest *</label>
+        <select id="f-role"></select>
       </div>
+      <p class="form-hint" style="margin-top:1.2rem;padding:0.9rem;background:rgba(43,107,232,.07);border-radius:10px;border-left:3px solid var(--accent2);line-height:1.6">
+        <strong style="font-size:0.82rem">Exam Rules:</strong><br>
+        15 questions &bull; 20-minute timer &bull; Questions are randomized &bull; Tab-switching is monitored &bull; Exam auto-submits at time limit or after 3 violations
+      </p>
+      <button class="btn-primary" style="width:100%;margin-top:1.4rem;justify-content:center" onclick="startExam()">
+        Begin Assessment &rarr;
+      </button>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     ADMIN DASHBOARD
-══════════════════════════════════════ -->
-<div id="admin-page" class="page">
-  <nav class="navbar">
-    <div class="navbar-brand">
-      <div class="dot"></div>
-      HelpDesk Pro
-    </div>
-    <div class="navbar-right">
-      <div class="sync-indicator" style="margin-right:4px;">
-        <div class="sync-dot" id="nav-sync-dot" style="width:5px;height:5px;"></div>
-        <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);" id="nav-sync-text">Live</span>
-      </div>
-      <div class="user-chip">
-        <div class="avatar avatar-admin">A</div>
-        <span>Admin peer</span>
-        <span class="role-tag">ADMIN</span>
-      </div>
-      <button class="btn btn-outline btn-sm" onclick="logout()">Sign out</button>
+<!-- ═══ SCREEN 4: ASSESSMENT ═══ -->
+<div id="s-exam" class="screen">
+  <nav>
+    <div class="logo">Kenn<span>Corp</span></div>
+    <div style="display:flex;align-items:center;gap:0.9rem">
+      <div style="font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:700;color:var(--muted)" id="exam-nav-label">Assessment</div>
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+        <span class="theme-icon-sun">&#9728;</span>
+        <span class="theme-icon-moon">&#9790;</span>
+      </button>
     </div>
   </nav>
-  <div class="dashboard-content">
-    <div class="page-header">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+  <div class="assessment-wrap">
+
+    <!-- NEW v2: Top bar — timer + violation counter -->
+    <div class="exam-topbar">
+      <div class="timer-block" id="timer-block">
+        <span class="timer-icon">&#9201;</span>
         <div>
-          <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(79,138,255,0.1);border:1px solid rgba(79,138,255,0.2);border-radius:100px;padding:4px 12px;margin-bottom:10px;">
-            <div class="sync-dot" id="admin-header-dot" style="width:5px;height:5px;"></div>
-            <span style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);">Live Sync Active</span>
-          </div>
-          <h1>Admin Dashboard</h1>
-          <p>Manage, assign, and resolve all support tickets in real time</p>
+          <div class="timer-label">Time Remaining</div>
+          <div id="timer-display">20:00</div>
         </div>
-        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);text-align:right;padding-top:4px;">
-          <div style="margin-bottom:2px;">v2.1.0 · HelpDesk Pro</div>
-          <div id="admin-last-sync" style="color:var(--text3);">Connecting…</div>
-        </div>
+      </div>
+      <div class="violation-badge hidden" id="violation-badge">
+        &#9888; Violations: <span id="violation-count">0</span> / 3
       </div>
     </div>
 
-    <div class="stats-row">
-      <div class="stat-card" style="border-top-color:var(--accent);">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <div style="width:36px;height:36px;border-radius:10px;background:rgba(79,138,255,0.12);border:1px solid rgba(79,138,255,0.2);display:flex;align-items:center;justify-content:center;font-size:16px;">🎫</div>
-          <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);">ALL TIME</span>
-        </div>
-        <div class="num num-blue" id="stat-total">0</div>
-        <div class="lbl">Total Tickets</div>
+    <div class="progress-header">
+      <div class="progress-meta">
+        <span class="progress-label" id="prog-label">Confidentiality</span>
+        <span class="progress-fraction" id="prog-fraction">1 / 15</span>
       </div>
-      <div class="stat-card" style="border-top-color:var(--accent-amber);">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <div style="width:36px;height:36px;border-radius:10px;background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.2);display:flex;align-items:center;justify-content:center;font-size:16px;">📬</div>
-          <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);">PENDING</span>
-        </div>
-        <div class="num num-amber" id="stat-open">0</div>
-        <div class="lbl">Open</div>
+      <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+    <div class="cat-tabs" id="cat-tabs">
+      <div class="cat-tab active" id="tab-0">Confidentiality</div>
+      <div class="cat-tab" id="tab-1">Integrity</div>
+      <div class="cat-tab" id="tab-2">Accountability</div>
+    </div>
+    <div id="q-area"></div>
+  </div>
+</div>
+
+<!-- NEW v2: Anti-cheat warning overlay -->
+<div class="anticheat-overlay" id="anticheat-overlay">
+  <div class="anticheat-modal">
+    <div class="anticheat-icon">&#9888;</div>
+    <h3>Tab Switch Detected</h3>
+    <p>You have navigated away from the exam window. This is recorded as a violation. Exiting the exam window 3 times will automatically submit your exam with your current answers.</p>
+    <div class="anticheat-count" id="anticheat-msg">Violation 1 of 3 recorded.</div>
+    <button class="btn-resume" onclick="resumeExam()">Return to Exam</button>
+  </div>
+</div>
+
+<!-- ═══ SCREEN 5: RESULTS ═══ -->
+<div id="s-results" class="screen">
+  <nav>
+    <div class="logo">Kenn<span>Corp</span></div>
+    <div style="display:flex;align-items:center;gap:0.7rem">
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+        <span class="theme-icon-sun">&#9728;</span>
+        <span class="theme-icon-moon">&#9790;</span>
+      </button>
+      <button class="nav-btn outline" onclick="show('s-home')">Home</button>
+    </div>
+  </nav>
+  <div class="results-wrap">
+    <div class="results-hero">
+      <h2 id="res-headline">Assessment Complete!</h2>
+      <p id="res-sub">Here's how you performed across all categories.</p>
+      <div class="big-score" id="res-score">0/15</div>
+      <div class="big-score-label">Total Score</div>
+    </div>
+    <div class="score-breakdown" id="score-breakdown"></div>
+    <div class="applicant-summary-card">
+      <h4>Application Summary</h4>
+      <div class="summary-row"><span class="summary-key">Applicant</span><span class="summary-val" id="sum-name">&mdash;</span></div>
+      <div class="summary-row"><span class="summary-key">Email</span><span class="summary-val" id="sum-email">&mdash;</span></div>
+      <div class="summary-row"><span class="summary-key">Contact</span><span class="summary-val" id="sum-phone">&mdash;</span></div>
+      <div class="summary-row"><span class="summary-key">Position</span><span class="summary-val" id="sum-role">&mdash;</span></div>
+      <div class="summary-row"><span class="summary-key">Department</span><span class="summary-val" id="sum-dept">&mdash;</span></div>
+      <div class="summary-row"><span class="summary-key">Violations</span><span class="summary-val" id="sum-violations">&mdash;</span></div>
+      <div class="summary-row"><span class="summary-key">Date Submitted</span><span class="summary-val" id="sum-date">&mdash;</span></div>
+    </div>
+    <!-- NEW v2: Professional completion message -->
+    <div class="confirm-box">
+      <div class="check">&#10003;</div>
+      <div>
+        <h4>Examination Submitted Successfully</h4>
+        <p>Your examination has been submitted successfully. Our HR team will review your application and contact you within 5&ndash;7 business days regarding the next steps. Thank you for your interest in joining KennCorp!</p>
       </div>
-      <div class="stat-card" style="border-top-color:var(--accent);">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <div style="width:36px;height:36px;border-radius:10px;background:rgba(79,138,255,0.12);border:1px solid rgba(79,138,255,0.2);display:flex;align-items:center;justify-content:center;font-size:16px;">⚡</div>
-          <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);">ACTIVE</span>
-        </div>
-        <div class="num num-blue" id="stat-accepted">0</div>
-        <div class="lbl">In Progress</div>
+    </div>
+    <div id="submit-area">
+      <div class="results-actions">
+        <button class="btn-home" onclick="show('s-home')">&larr; Back to Home</button>
+        <button class="btn-submit-final" id="btn-final-submit" onclick="submitToSheets()">
+          Submit to KennCorp
+        </button>
       </div>
-      <div class="stat-card" style="border-top-color:var(--accent-green);">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <div style="width:36px;height:36px;border-radius:10px;background:rgba(34,211,160,0.12);border:1px solid rgba(34,211,160,0.2);display:flex;align-items:center;justify-content:center;font-size:16px;">✅</div>
-          <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);">DONE</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SCREEN 6 (NEW v2): ADMIN ANALYTICS DASHBOARD ═══ -->
+<div id="s-admin" class="screen">
+  <nav>
+    <div class="logo">Kenn<span>Corp</span></div>
+    <button class="nav-btn outline" onclick="show('s-home')">&larr; Home</button>
+  </nav>
+  <div class="admin-wrap">
+    <div class="section-eyebrow">HR Admin</div>
+    <h1>Analytics Dashboard</h1>
+    <p class="admin-sub">Live summary of all applicant submissions and exam performance.</p>
+
+    <!-- KPI cards -->
+    <div class="stat-grid" id="admin-kpi"></div>
+
+    <!-- Charts row -->
+    <div class="analytics-grid">
+      <div class="chart-card">
+        <h3>Score Distribution by Department</h3>
+        <div class="bar-chart" id="dept-chart"></div>
+      </div>
+      <div class="chart-card">
+        <h3>Pass / Fail Rate</h3>
+        <div class="donut-wrap">
+          <canvas id="donut-canvas" width="120" height="120"></canvas>
+          <div class="donut-legend" id="donut-legend"></div>
         </div>
-        <div class="num num-green" id="stat-resolved">0</div>
-        <div class="lbl">Resolved</div>
+      </div>
+      <div class="chart-card">
+        <h3>Top 5 Scorers</h3>
+        <ul class="top-list" id="top-list"></ul>
+      </div>
+      <div class="chart-card">
+        <h3>Category Averages</h3>
+        <div class="bar-chart" id="cat-chart"></div>
       </div>
     </div>
 
-    <div class="card">
-      <!-- Card Top Bar: Title + Sync + Export -->
-      <div style="padding:16px 24px 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border-bottom:0;">
-        <div style="display:flex;align-items:center;gap:12px;">
-          <h2 style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;">All Tickets</h2>
-          <div class="sync-indicator">
-            <div class="sync-dot" id="admin-sync-dot"></div>
-            <span id="admin-sync-text" style="font-size:10px;">Connecting…</span>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <button class="btn btn-outline btn-sm" onclick="loadAdminTickets()" style="padding:6px 12px;font-size:12px;">⟳ Refresh</button>
-          <div style="position:relative;display:inline-block;" id="export-dropdown-wrap">
-            <button class="btn btn-sm" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border:none;box-shadow:0 4px 12px rgba(79,138,255,0.25);padding:6px 14px;font-size:12px;" onclick="toggleExportMenu()">⬇ Export</button>
-            <div id="export-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:6px;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,0.4);z-index:50;">
-              <button onclick="exportCSV()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;border-radius:6px;border:none;background:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;" onmouseover="this.style.background='var(--surface3)'" onmouseout="this.style.background='none'">📄 Export as CSV</button>
-              <button onclick="exportXLSX()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;border-radius:6px;border:none;background:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;" onmouseover="this.style.background='var(--surface3)'" onmouseout="this.style.background='none'">📊 Export as Excel</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Filter Bar -->
-      <div style="padding:12px 24px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-        <input type="text" id="search-input" placeholder="🔍  Search by name, ID, issue…" oninput="renderAdminTable()"
-          style="flex:1;min-width:200px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color 0.2s;"
-          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
-        <select id="filter-status" onchange="renderAdminTable()"
-          style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;cursor:pointer;">
-          <option value="">All Statuses</option>
-          <option value="Open">🟡 Open</option>
-          <option value="Accepted">🔵 Accepted</option>
-          <option value="Resolved">🟢 Resolved</option>
-        </select>
-        <select id="filter-site" onchange="renderAdminTable()"
-          style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;cursor:pointer;">
-          <option value="">All Sites</option>
-          <option value="Manila">📍 Manila</option>
-          <option value="Cebu">📍 Cebu</option>
-          <option value="Offsite">📍 Offsite</option>
-        </select>
-      </div>
-      <div class="card-header" style="display:none;"><!-- hidden placeholder for JS compatibility --></div>
-      <div class="table-wrap">
-        <table>
+    <!-- Full applicant table -->
+    <div class="admin-table-card">
+      <h3>All Applicants</h3>
+      <div style="overflow-x:auto">
+        <table class="admin-table" id="admin-table">
           <thead>
             <tr>
-              <th>Ticket ID</th>
-              <th>Name</th>
-              <th>Issue</th>
-              <th>Site</th>
-              <th>Date/Time</th>
-              <th>Status</th>
-              <th>Assigned Admin</th>
-              <th>Actions</th>
+              <th>#</th><th>Name</th><th>Position</th><th>Dept</th>
+              <th>Conf</th><th>Integ</th><th>Acct</th>
+              <th>Total</th><th>%</th><th>Violations</th><th>Date</th>
             </tr>
           </thead>
-          <tbody id="admin-table-body">
-            <tr><td colspan="8"><div class="empty-state"><div class="icon">📋</div><h3>No tickets yet</h3><p>Tickets submitted by end users will appear here automatically.</p></div></td></tr>
-          </tbody>
+          <tbody id="admin-tbody"></tbody>
         </table>
       </div>
     </div>
+
+    <button class="btn-primary" onclick="clearAdminData()" style="background:var(--muted)">Clear All Data</button>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     ADMIN UPDATE MODAL
-══════════════════════════════════════ -->
-<div class="modal-overlay" id="update-modal">
-  <div class="modal">
-    <h2>Update Ticket</h2>
-    <p class="modal-sub" id="modal-ticket-id-label">Ticket #</p>
-
-    <div class="detail-grid" id="modal-detail-view"></div>
-
-    <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;padding-top:4px;">Admin Actions</div>
-
-    <div class="form-group">
-      <label>Ticket Status</label>
-      <select id="modal-status">
-        <option value="Open">🟡 Open</option>
-        <option value="Accepted">🔵 Accepted — In Progress</option>
-        <option value="Resolved">🟢 Resolved — Closed</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Assigned Admin</label>
-      <input type="text" id="modal-admin" placeholder="Name of admin handling this ticket">
-    </div>
-    <div class="form-group">
-      <label>Resolution Details / Remarks</label>
-      <textarea id="modal-resolution" placeholder="Describe the resolution, steps taken, or add any relevant remarks…"></textarea>
-    </div>
-    <div class="form-group" id="date-resolved-group" style="display:none;">
-      <label>Date Resolved</label>
-      <input type="text" id="modal-date-resolved" placeholder="Auto-filled when marked Resolved" readonly
-        style="opacity:0.6;background:var(--surface3);cursor:not-allowed;">
-    </div>
-
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" style="width:auto;padding:12px 28px;" onclick="saveTicketUpdate()">Save Changes →</button>
-    </div>
-  </div>
-</div>
-
-<!-- Toast Container -->
-<div class="toast-container" id="toast-container"></div>
+<div class="toast" id="toast"></div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════════════
-// HELPDESK PRO — GLOBAL CONFIGURATION
-// ┌─────────────────────────────────────────────────────────────────────┐
-// │  PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW (line 7)         │
-// │  This is the ONLY place you need to set it. Works on all devices.  │
-// └─────────────────────────────────────────────────────────────────────┘
-// ═══════════════════════════════════════════════════════════════════════
-const CONFIG = {
-  GAS_URL : 'https://script.google.com/macros/s/AKfycbxo7uxOvkmW2PHzJkaqoRj-QfAohc4H7MocunPQg3Q8urwUurhGFfxv0ZpNsDaXGxSX/exec',  // ← Replace this with your Web App URL
-  POLL_MS : 4000,                          // Polling interval in ms (4 seconds)
-  VERSION : '2.1.0'
-};
-// ═══════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════
+// CONFIGURATION
+// ════════════════════════════════════════════════════════════════
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID_HERE/exec';
 
-// ── CREDENTIALS ─────────────────────────────────────────────────────
-const USERS = {
-  user: { password: 'password2026', role: 'user', display: 'End User' },
-  peer: { password: 'password2026', role: 'admin', display: 'peer' }
-};
+// NEW v2: Exam settings
+const EXAM_DURATION_SECONDS = 20 * 60; // 20 minutes
+const MAX_VIOLATIONS        = 3;        // auto-submit after this many
 
-// ── RUNTIME STATE ───────────────────────────────────────────────────
-let tickets        = [];
-let currentUser    = null;
-let activeModalTicketId = null;
-let pollTimer      = null;
-let lastTicketHash = '';
-let isFetching     = false;
-let pendingWrite   = false;
-
-// Derive the active GAS URL — config takes priority, localStorage is fallback
-// for any legacy saved URL (admin override during testing)
-function getGasUrl() {
-  const cfg = CONFIG.GAS_URL.trim();
-  if (cfg && cfg !== 'YOUR_APPS_SCRIPT_URL_HERE') return cfg;
-  return localStorage.getItem('hd_gas_url') || '';  // legacy fallback
-}
-
-// ── DATE HELPERS ─────────────────────────────────────────────────────
-function formatDatePH(date) {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  const ph = new Date(d.getTime() + 8 * 3600 * 1000);
-  const p = n => String(n).padStart(2, '0');
-  return `${p(ph.getUTCMonth()+1)}/${p(ph.getUTCDate())}/${ph.getUTCFullYear()} ${p(ph.getUTCHours())}:${p(ph.getUTCMinutes())}:${p(ph.getUTCSeconds())}`;
-}
-function formatDate(v) {
-  if (!v) return '—';
-  if (/^\d{2}\/\d{2}\/\d{4}/.test(v)) return v;
-  return formatDatePH(v);
-}
-function genTicketId() {
-  const now = new Date(), p = n => String(n).padStart(2,'0');
-  return `TKT-${now.getFullYear()}${p(now.getMonth()+1)}${p(now.getDate())}-${String(Date.now()).slice(-4)}`;
-}
-function escHtml(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function statusClass(s) {
-  return {Open:'s-open',Accepted:'s-accepted',Resolved:'s-resolved',Closed:'s-closed'}[s]||'s-open';
-}
-function toast(msg, type='info') {
-  const c = document.getElementById('toast-container');
-  const t = document.createElement('div');
-  t.className = `toast toast-${type}`; t.textContent = msg;
-  c.appendChild(t); setTimeout(() => t.remove(), 3200);
-}
-function setSyncState(dotId, textId, state, msg) {
-  const dot = document.getElementById(dotId), txt = document.getElementById(textId);
-  if (!dot||!txt) return;
-  dot.className = 'sync-dot'+(state==='syncing'?' syncing':state==='error'?' error':'');
-  txt.textContent = msg;
-}
-function hashTickets(arr) {
-  return arr.map(t => t.id+t.status+(t.assignedAdmin||'')+(t.resolutionDetails||'')+(t.dateResolved||'')).join('|');
-}
-
-// ── GAS: POST (write) ────────────────────────────────────────────────
-async function gasPost(action, ticket) {
-  const url = getGasUrl();
-  if (!url) return false;
-  try {
-    await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, ticket }),
-      mode: 'no-cors'
-    });
-    return true;
-  } catch(e) { return false; }
-}
-
-// ── GAS: GET via JSONP (bypasses CORS for GitHub Pages) ──────────────
-let _resolve = null, _timer = null;
-window._gasCallback = function(data) {
-  if (_timer) clearTimeout(_timer);
-  if (_resolve) { _resolve(data); _resolve = null; }
+// ════════════════════════════════════════════════════════════════
+// QUESTION BANK — full 45 questions (unchanged, all 3 departments)
+// ════════════════════════════════════════════════════════════════
+const QBank = {
+  IT: {
+    Confidentiality: [
+      { q:"You discover that a colleague has left their workstation unlocked with sensitive customer records visible on screen. No one else is nearby. What do you do?", choices:["Lock their screen immediately, then privately inform them later","Take a photo of the screen for documentation purposes","Tell your manager loudly in the open office so others are aware","Ignore it since it's not your responsibility"], correct:0 },
+      { q:"A client calls requesting their account password over the phone, claiming they're locked out urgently. What is the correct response?", choices:["Provide the password after verifying their name and email","Refuse entirely and hang up","Guide them through the official self-service password reset process","Reset it for them and read the new one aloud"], correct:2 },
+      { q:"You have legitimate access to a production database and notice a co-worker's personal salary information in a table you were assigned to audit. You should:", choices:["Note it down for future reference","Limit your review to the assigned data scope and report if you accidentally saw sensitive data","Share the finding with your team to flag a data structure problem","Screenshot it as evidence of data mismanagement"], correct:1 },
+      { q:"Your manager asks you to email a compressed archive of all user account data to an external vendor for testing. What is the proper course of action?", choices:["Send it immediately since the manager approved it","Ask the manager to go through the official data-sharing approval process","Share anonymized/synthetic test data instead and raise the concern","Refuse and report the manager to HR"], correct:2 },
+      { q:"During a code review, you notice that another developer has hardcoded API keys in a public repository. What do you do?", choices:["Leave a comment in the review and move on","Immediately report it to the security team and advise key rotation","Delete the keys from the repo yourself without telling anyone","Post in the team Slack for visibility"], correct:1 }
+    ],
+    Integrity: [
+      { q:"You are the only person who knows that a critical bug you deployed caused yesterday's outage, but it was automatically rolled back. What do you do?", choices:["Stay quiet since it was fixed automatically","Document the incident, report it, and propose safeguards to prevent recurrence","Only tell your closest colleague","Wait to see if anyone asks"], correct:1 },
+      { q:"A vendor offers you a generous gift card to prioritize their software in an upcoming evaluation. What is the correct action?", choices:["Accept it quietly and evaluate fairly","Decline and report the offer to your manager and procurement team","Accept it but write an honest review anyway","Ask for a larger gift before deciding"], correct:1 },
+      { q:"Your team lead asks you to mark a feature as 'tested and complete' to meet a deadline, even though testing hasn't been done. You should:", choices:["Mark it complete to keep the team on track","Refuse and document your objection, escalating if pressured","Do a quick cursory test and mark it done","Ask a junior to do it so you aren't responsible"], correct:1 },
+      { q:"You realize mid-project that your time estimate was significantly off, causing a budget overrun. What is the best response?", choices:["Quietly absorb the hours without telling anyone","Proactively alert the project manager with a revised estimate and an action plan","Spread the hours across unrelated project codes","Blame the scope change even if that wasn't the primary cause"], correct:1 },
+      { q:"During a penetration test you're authorized to run, you accidentally gain access to a competitor's server. You should:", choices:["Explore it for strategic intelligence","Immediately stop, document what happened, and report it to your supervisor and legal team","Patch the vulnerability quietly and say nothing","Continue your test as if nothing happened"], correct:1 }
+    ],
+    Accountability: [
+      { q:"A critical deployment you led failed and caused an hour of downtime for 10,000 users. Your immediate next action is to:", choices:["Identify who else was involved to share blame","Own the incident, coordinate a rollback, then write a post-mortem with root cause and preventive measures","Quietly fix it and hope no one notices","Wait for your manager to assign tasks"], correct:1 },
+      { q:"You are assigned a task but realize two days before the deadline that you cannot complete it on time. You should:", choices:["Submit whatever is done and say it's complete","Proactively communicate the delay, explain the reason, and propose a revised plan","Ask a colleague to rush it without context","Silently work overtime and skip the deadline"], correct:1 },
+      { q:"Your code passes all unit tests but you have a gut feeling something is still wrong. The deadline is today. What do you do?", choices:["Submit as-is since all tests pass","Run additional exploratory tests and document your concerns even if you hit the deadline","Skip your concerns and submit confidently","Ask someone else to handle it"], correct:1 },
+      { q:"A junior team member reports that your code caused a recurring bug in their module. Your response is:", choices:["Dispute the claim without investigating","Thank them for flagging it, investigate promptly, and take responsibility if confirmed","Ask them to fix it since it's affecting their code","Escalate to management to resolve the conflict"], correct:1 },
+      { q:"You accidentally delete a branch containing two weeks of work on a shared codebase. What do you do first?", choices:["Hope it can be recovered and stay quiet","Immediately notify the team, attempt recovery using version control tools, and be fully transparent","Recreate what you remember and say nothing","Blame the repository setup"], correct:1 }
+    ]
+  },
+  HR: {
+    Confidentiality: [
+      { q:"An employee asks you if their colleague is being considered for a promotion you're managing. What is the appropriate response?", choices:["Confirm or deny since it seems harmless","Redirect by saying HR matters are kept confidential and you cannot discuss others' information","Give a vague hint","Tell them nothing is final yet, implying yes"], correct:1 },
+      { q:"You overhear two employees discussing a third employee's private medical leave in the break room. What should you do?", choices:["Join the conversation to clarify the facts","Politely interrupt and remind them that medical information is confidential","Report the two employees to their manager immediately","Ignore it as it's casual conversation"], correct:1 },
+      { q:"A department head asks you for the performance review scores of all employees in another team for 'benchmarking.' You should:", choices:["Share the data since they're a senior manager","Request written authorization through proper channels and consult your HR manager first","Provide aggregated anonymized data only after verifying the legitimate need","Share it to maintain good relationships with leadership"], correct:2 },
+      { q:"You accidentally send an employee's salary information to the wrong internal email. What is your first action?", choices:["Send a follow-up asking the recipient to delete it","Contact the recipient immediately, request deletion, notify your manager, and log the incident","Ignore it if the recipient doesn't respond","Delete your sent email so there's no record"], correct:1 },
+      { q:"After an employee's termination, a former manager asks you for their new contact information. What do you do?", choices:["Share it to maintain professional courtesy","Inform them that you cannot share personal information of former employees without consent","Ask the former employee first via their last known email","Provide the LinkedIn profile as a compromise"], correct:1 }
+    ],
+    Integrity: [
+      { q:"During recruitment, a hiring manager tells you to screen out candidates over 50 years old. What is the correct action?", choices:["Follow the instruction since the manager knows the team best","Refuse and explain that age-based screening is illegal discrimination, then escalate if needed","Comply but document it","Screen them out but use a neutral reason"], correct:1 },
+      { q:"You realize you have a close personal relationship with one of the final candidates for a role you are managing. You should:", choices:["Proceed normally since you trust your objectivity","Disclose the relationship to your manager and recuse yourself from the decision","Ensure the candidate is hired to maintain the relationship","Advance the candidate only if they're the best on paper"], correct:1 },
+      { q:"An employee files a workplace harassment complaint against a top performer. How should you handle it?", choices:["Investigate lightly to protect company productivity","Follow standard investigation protocol with equal rigor regardless of the accused's performance record","Mediate informally to avoid formal documentation","Advise the complainant to reconsider before filing formally"], correct:1 },
+      { q:"A colleague in HR asks you to approve a leave request on their behalf without proper documentation, citing urgency. You should:", choices:["Approve it as a favor","Decline and require proper documentation even in urgent cases, offering to expedite the process","Approve it verbally and backfill the documentation later","Escalate to their manager without telling your colleague"], correct:1 },
+      { q:"During an exit interview, an employee shares serious allegations about their supervisor. You should:", choices:["Keep it between you and the employee out of respect","Document the information accurately, inform the employee of the next steps, and escalate per policy","Dismiss it as a departing employee venting frustration","Share it informally with other managers"], correct:1 }
+    ],
+    Accountability: [
+      { q:"You discover a payroll error affecting 12 employees that was processed under your watch last month. You should:", choices:["Wait to see if employees raise it themselves","Immediately notify payroll, your manager, and affected employees with a correction timeline","Quietly correct next month's payroll without telling anyone","Ask a colleague to handle it to avoid embarrassment"], correct:1 },
+      { q:"You promised a candidate a hiring decision by Monday but are unable to make the call due to incomplete approvals. You should:", choices:["Ignore the deadline and reach out when ready","Contact the candidate before Monday, explain the delay professionally, and give a new realistic timeline","Send a rejection to close the loop","Ask a colleague to send a vague holding email"], correct:1 },
+      { q:"A training program you designed underperformed significantly based on post-session feedback. Your response is:", choices:["Attribute poor results to participant disengagement","Review the feedback objectively, identify shortcomings in your design, and revise the program","Defend the design in the next team meeting","Ask another trainer to deliver it differently next time"], correct:1 },
+      { q:"You missed updating an employee's status in the system, which caused their health benefits to lapse. You should:", choices:["Wait for the employee to notice and raise it","Immediately notify the employee and benefits team, coordinate reinstatement, and put in place a process check","Ask IT to backdate the update","Apologize informally and move on"], correct:1 },
+      { q:"An employee complains that a company policy you enforced was applied inconsistently across their team. You should:", choices:["Dismiss the complaint as perception","Investigate the claim thoroughly, correct any inconsistency, and clarify the policy application going forward","Ask the employee to raise it through their manager","Agree with the employee and not apply the policy until it's reviewed"], correct:1 }
+    ]
+  },
+  Operations: {
+    Confidentiality: [
+      { q:"You receive a vendor invoice that reveals sensitive pricing agreements not meant for general staff. A curious colleague asks you about it. You should:", choices:["Share the details since you're both employees","Explain that vendor pricing is confidential and redirect the conversation","Ask your manager if it's okay to share","Post a summary to the procurement team channel"], correct:1 },
+      { q:"During a client site visit, you observe internal processes and data unique to their operations. A competitor's rep asks for insights. You should:", choices:["Share general observations to maintain industry relationships","Decline to share, as client operational information is strictly confidential","Share only publicly observable information","Ask your manager then share if approved"], correct:1 },
+      { q:"You accidentally receive an email with another department's budget figures. What should you do?", choices:["Read through it for useful context","Immediately notify the sender of the misdirection, delete it, and do not share the information","Forward it to your team lead","Archive it in case it's useful later"], correct:1 },
+      { q:"A logistics partner requests detailed internal workflow documentation to 'streamline coordination.' You should:", choices:["Share everything to improve efficiency","Consult your manager and legal team before sharing any internal process documentation","Share only process steps, not people or systems information","Decline entirely without explanation"], correct:1 },
+      { q:"You overhear the operations director discussing a confidential restructuring plan in a public hallway. You are not part of the project team. You should:", choices:["Share what you heard with your immediate team","Keep the information to yourself and act as though you did not hear it","Ask the director if you can join the project","Document it and report to HR"], correct:1 }
+    ],
+    Integrity: [
+      { q:"Your daily production report shows a 10% shortfall, but your supervisor wants numbers that 'look good for leadership.' You should:", choices:["Adjust the numbers to reflect what leadership expects","Submit accurate figures and professionally communicate the shortfall with a recovery plan","Round up slightly to split the difference","Ask a colleague to submit on your behalf"], correct:1 },
+      { q:"You discover that a shipment was delivered short, but the delivery was already confirmed by a peer. You should:", choices:["Leave it since someone else confirmed it","Report the discrepancy accurately, initiate a reconciliation process, and document the finding","Confirm the original record to avoid conflict","Only report it if the shortage exceeds 5%"], correct:1 },
+      { q:"A supplier offers you a personal bonus to give their delivery higher priority over a competing vendor. You should:", choices:["Accept it if no one will find out","Decline immediately and report the offer to your manager and procurement team","Decline but keep the information to yourself","Accept it, prioritize fairly, and return the bonus later"], correct:1 },
+      { q:"You realize that the KPI report you submitted last week contained an error that inflated your team's output by 15%. You should:", choices:["Leave it since the period is closed","Report the error immediately, submit a corrected report, and implement a review step to catch future errors","Quietly correct it in next month's report","Only correct it if your manager asks"], correct:1 },
+      { q:"During a quality audit, you find that a process your team has used for months does not meet compliance standards. You should:", choices:["Continue using the process until the audit report is finalized","Immediately halt the non-compliant process, report to your supervisor, and initiate a corrective action plan","Modify the process slightly and hope it passes","Document the issue but continue operations"], correct:1 }
+    ],
+    Accountability: [
+      { q:"Your team missed a key SLA because of a miscommunication in the handoff process you are responsible for managing. You should:", choices:["Attribute the miss to the team that dropped the handoff","Own the process failure, issue a formal apology to the affected party, and redesign the handoff protocol","Ask each team member to explain their role in the failure","File an incident report blaming the communication tools"], correct:1 },
+      { q:"A piece of machinery under your care was not maintained on schedule and caused a minor injury to a worker. You should:", choices:["Cooperate with the investigation only if formally required","Immediately report the incident, cooperate fully, accept responsibility for the maintenance lapse, and implement corrective measures","Let the safety officer handle it independently","Raise the issue only in the next scheduled maintenance review"], correct:1 },
+      { q:"You approved a vendor order that was later found to be significantly over budget due to your miscalculation. You should:", choices:["Hope finance doesn't notice this quarter","Report the budget overrun to finance and your manager immediately, take ownership, and propose an offset measure","Spread the overrun across multiple cost centers","Wait until month-end reconciliation"], correct:1 },
+      { q:"A new team member trained under your supervision made a costly error on their first independent task. You should:", choices:["Inform management that the new hire was not ready","Accept co-responsibility, support the new hire in correcting the error, and review the training process to identify gaps","Let the new hire handle the fallout independently to build resilience","Reassign them to simpler tasks without addressing the root cause"], correct:1 },
+      { q:"You submitted an operations proposal that was approved and implemented, but results show it is not working as projected. You should:", choices:["Wait for the next review cycle to raise concerns","Proactively flag the underperformance, take ownership of the gap, and propose a revised approach","Attribute the gap to external market factors","Ask the implementation team to troubleshoot"], correct:1 }
+    ]
+  }
 };
 
-function gasFetch() {
-  return new Promise(resolve => {
-    const url = getGasUrl();
-    if (!url) { resolve(null); return; }
-    const old = document.getElementById('_gs'); if (old) old.remove();
-    _resolve = resolve;
-    _timer = setTimeout(() => { _resolve = null; resolve(null); }, 8000);
-    const s = document.createElement('script');
-    s.id = '_gs';
-    s.src = url + '?callback=_gasCallback&_=' + Date.now();
-    s.onerror = () => { if(_resolve){_resolve(null);_resolve=null;} };
-    document.head.appendChild(s);
-  });
-}
+// ════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════
+let appData    = { dept:'', first:'', last:'', email:'', phone:'', role:'' };
 
-// ── POLL ENGINE ──────────────────────────────────────────────────────
-function startPolling() {
-  stopPolling();
-  const url = getGasUrl();
-  if (!url) {
-    // No URL configured — show warning in sync indicators
-    setSyncState('admin-sync-dot','admin-sync-text','error','GAS URL not set in CONFIG');
-    setSyncState('submit-sync-dot','submit-sync-text','error','GAS URL not set');
-    console.warn('[HelpDesk Pro] CONFIG.GAS_URL is not set. Open ticketing-system.html and replace YOUR_APPS_SCRIPT_URL_HERE with your Web App URL.');
-    return;
-  }
-  pollOnce();
-  pollTimer = setInterval(pollOnce, CONFIG.POLL_MS);
-}
+// NEW v2: exam state now includes timer + violations + randomized order
+let examState  = {
+  questions      : [],
+  shuffledChoices: [],   // NEW v2: stores per-question shuffled choice order
+  correctMapped  : [],   // NEW v2: stores correct answer index after shuffle
+  current        : 0,
+  answers        : [],
+  scores         : [0,0,0],
+  violations     : 0,    // NEW v2
+  timerSecs      : EXAM_DURATION_SECONDS, // NEW v2
+  timerInterval  : null, // NEW v2
+  submitted      : false // NEW v2: guard against double-submit
+};
 
-function stopPolling() {
-  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
-}
+const deptRoles = {
+  IT:         ['Cloud Architect','Senior Backend Engineer','DevOps Engineer','Cybersecurity Analyst'],
+  HR:         ['HR Business Partner','Talent Acquisition Lead','L&D Manager','Compensation Analyst'],
+  Operations: ['Operations Manager','Supply Chain Analyst','Process Improvement Lead','Logistics Coordinator']
+};
 
-async function pollOnce() {
-  if (isFetching || pendingWrite || !currentUser) return;
-  const url = getGasUrl();
-  if (!url) return;
-  isFetching = true;
-
-  const role  = currentUser.role;
-  const dotId = role === 'admin' ? 'admin-sync-dot'  : 'submit-sync-dot';
-  const txtId = role === 'admin' ? 'admin-sync-text' : 'submit-sync-text';
-
-  try {
-    const data = await gasFetch();
-    if (!data || !Array.isArray(data.tickets)) throw new Error('Invalid response');
-
-    const newHash = hashTickets(data.tickets);
-    const changed = newHash !== lastTicketHash;
-    lastTicketHash = newHash;
-    tickets = data.tickets;
-
-    if (changed) {
-      if (role === 'admin') { renderAdminTable(); updateAdminStats(); }
-      else                  { loadTickets(); updateUserStats(); }
-    }
-
-    const timeStr = formatDatePH(new Date()).split(' ')[1];
-    setSyncState(dotId, txtId, 'ok', `Live · ${timeStr}`);
-    // Sync all indicators
-    const hdrDot = document.getElementById('admin-header-dot');
-    const lastSync = document.getElementById('admin-last-sync');
-    const navDot = document.getElementById('nav-sync-dot');
-    const navTxt = document.getElementById('nav-sync-text');
-    if (hdrDot) hdrDot.className = 'sync-dot';
-    if (lastSync) lastSync.textContent = `Last sync: ${timeStr}`;
-    if (navDot) navDot.className = 'sync-dot';
-    if (navTxt) navTxt.textContent = timeStr;
-
-  } catch(e) {
-    setSyncState(dotId, txtId, 'error', 'Retrying…');
-    const navD = document.getElementById('nav-sync-dot');
-    const navT = document.getElementById('nav-sync-text');
-    if (navD) navD.className = 'sync-dot error';
-    if (navT) navT.textContent = 'Offline';
-  } finally {
-    isFetching = false;
-  }
-}
-
-// ── AUTH ─────────────────────────────────────────────────────────────
-function handleLogin() {
-  const u   = document.getElementById('login-username').value.trim();
-  const p   = document.getElementById('login-password').value;
-  const err = document.getElementById('login-error');
-  if (!USERS[u] || USERS[u].password !== p) { err.style.display = 'block'; return; }
-  err.style.display = 'none';
-  currentUser = { username: u, ...USERS[u] };
-  showPage(currentUser.role === 'admin' ? 'admin-page' : 'user-page');
-  if (currentUser.role === 'user') {
-    document.getElementById('user-display').textContent = currentUser.display;
-    document.getElementById('user-avatar').textContent  = u[0].toUpperCase();
-  }
-  startPolling();
-}
-
-function logout() {
-  stopPolling();
-  currentUser = null; tickets = []; lastTicketHash = '';
-  document.getElementById('login-username').value = '';
-  document.getElementById('login-password').value = '';
-  showPage('login-page');
-}
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && document.getElementById('login-page').classList.contains('active')) handleLogin();
-});
-
-// ── PAGE / TAB ROUTING ───────────────────────────────────────────────
-function showPage(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+// ════════════════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════════════════
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-}
-function switchTab(tab) {
-  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===(tab==='submit'?0:1)));
-  document.getElementById('tab-submit').classList.toggle('active', tab==='submit');
-  document.getElementById('tab-mytickets').classList.toggle('active', tab==='mytickets');
+  window.scrollTo(0,0);
+  if (id === 's-admin') renderAdmin();
 }
 
-// ── SUBMIT TICKET ────────────────────────────────────────────────────
-async function submitTicket() {
-  const name  = document.getElementById('f-name').value.trim();
-  const issue = document.getElementById('f-issue').value.trim();
-  const desc  = document.getElementById('f-desc').value.trim();
-  const site  = document.getElementById('f-site').value;
-  if (!name||!issue||!desc||!site) { toast('Please fill in all fields.','error'); return; }
+function startApplication(dept) {
+  appData.dept = dept;
+  document.getElementById('form-title').textContent =
+    'Apply \u2014 ' + (dept==='IT' ? 'Information Technology' : dept==='HR' ? 'Human Resources' : 'Operations');
+  const sel = document.getElementById('f-role');
+  sel.innerHTML = '<option value="">Select a role...</option>';
+  deptRoles[dept].forEach(r => {
+    const o = document.createElement('option'); o.value = r; o.textContent = r; sel.appendChild(o);
+  });
+  ['f-first','f-last','f-email','f-phone'].forEach(id => document.getElementById(id).value = '');
+  show('s-form');
+}
 
-  const url = getGasUrl();
-  if (!url) {
-    toast('Backend not configured. Contact your administrator.','error');
-    return;
+// ════════════════════════════════════════════════════════════════
+// NEW v2: FISHER-YATES SHUFFLE HELPER
+// ════════════════════════════════════════════════════════════════
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
   }
+  return a;
+}
 
-  const ticket = {
-    id: genTicketId(), name, issue, description: desc, site,
-    dateSubmitted: formatDatePH(new Date()),
-    status: 'Open', assignedAdmin: '', resolutionDetails: '', dateResolved: '',
-    submittedBy: currentUser.username
-  };
-
-  // Optimistic UI
-  tickets.unshift(ticket);
-  document.getElementById('f-name').value = '';
-  document.getElementById('f-issue').value = '';
-  document.getElementById('f-desc').value = '';
-  document.getElementById('f-site').value = '';
-  const succ = document.getElementById('submit-success');
-  succ.classList.add('show'); setTimeout(() => succ.classList.remove('show'), 5000);
-  updateUserStats();
-
-  pendingWrite = true;
-  setSyncState('submit-sync-dot','submit-sync-text','syncing','Submitting…');
-  const ok = await gasPost('create', ticket);
-  pendingWrite = false;
-
-  if (ok) {
-    toast('Ticket submitted and synced!','success');
-    lastTicketHash = '';
-  } else {
-    toast('Submitted locally — sync pending.','info');
-    setSyncState('submit-sync-dot','submit-sync-text','error','Sync pending');
+// ════════════════════════════════════════════════════════════════
+// START EXAM — NEW v2: randomizes questions & choices, starts timer
+// ════════════════════════════════════════════════════════════════
+function startExam() {
+  const first = document.getElementById('f-first').value.trim();
+  const last  = document.getElementById('f-last').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  const role  = document.getElementById('f-role').value;
+  if (!first || !last || !email || !phone || !role) {
+    showToast('Please fill in all required fields.'); return;
   }
-}
-
-// ── USER: MY TICKETS ─────────────────────────────────────────────────
-function loadTickets() {
-  const container = document.getElementById('user-tickets-list');
-  const mine = tickets.filter(t => t.submittedBy === currentUser.username);
-  if (!mine.length) {
-    container.innerHTML = `<div class="empty-state"><div class="icon">🎫</div><h3>No tickets yet</h3><p>Submit a ticket and it will appear here.</p></div>`;
-    return;
+  if (!/^\S+@\S+\.\S+$/.test(email)) {
+    showToast('Please enter a valid email address.'); return;
   }
-  container.innerHTML = mine.map(t => `
-    <div class="ticket-item">
-      <div class="ticket-id-badge">${escHtml(t.id)}</div>
-      <div class="ticket-info">
-        <h3>${escHtml(t.issue)}</h3>
-        <div class="meta">
-          <span>👤 ${escHtml(t.name)}</span>
-          <span>📍 ${escHtml(t.site)}</span>
-          <span>🕐 ${formatDate(t.dateSubmitted)}</span>
-          ${t.assignedAdmin?`<span>🧑‍💼 ${escHtml(t.assignedAdmin)}</span>`:''}
-        </div>
-        ${t.resolutionDetails?`<div style="margin-top:8px;font-size:12px;color:var(--text2);background:var(--surface3);padding:8px 12px;border-radius:6px;">${escHtml(t.resolutionDetails)}</div>`:''}
-      </div>
-      <div><span class="status-badge ${statusClass(t.status)}">${t.status}</span></div>
-      ${t.dateResolved?`<div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">${formatDate(t.dateResolved)}</div>`:'<div></div>'}
-    </div>`).join('');
-  updateUserStats();
-}
+  appData = { ...appData, first, last, email, phone, role };
 
-function updateUserStats() {
-  const my = tickets.filter(t => t.submittedBy === currentUser?.username);
-  document.getElementById('stat-u-total').textContent    = my.length;
-  document.getElementById('stat-u-open').textContent     = my.filter(t=>t.status==='Open').length;
-  document.getElementById('stat-u-accepted').textContent = my.filter(t=>t.status==='Accepted').length;
-  document.getElementById('stat-u-resolved').textContent = my.filter(t=>t.status==='Resolved').length;
-}
+  const bank = QBank[appData.dept];
 
-// ── ADMIN: TABLE + STATS ─────────────────────────────────────────────
-function loadAdminTickets() { pollOnce(); }
+  // NEW v2: shuffle question order within each category, then concatenate
+  const shuffledQ = [
+    ...shuffle(bank.Confidentiality),
+    ...shuffle(bank.Integrity),
+    ...shuffle(bank.Accountability)
+  ];
 
-function updateAdminStats() {
-  document.getElementById('stat-total').textContent    = tickets.length;
-  document.getElementById('stat-open').textContent     = tickets.filter(t=>t.status==='Open').length;
-  document.getElementById('stat-accepted').textContent = tickets.filter(t=>t.status==='Accepted').length;
-  document.getElementById('stat-resolved').textContent = tickets.filter(t=>t.status==='Resolved').length;
-}
+  examState.questions       = shuffledQ;
+  examState.shuffledChoices = [];
+  examState.correctMapped   = [];
+  examState.current         = 0;
+  examState.answers         = new Array(15).fill(null);
+  examState.scores          = [0,0,0];
+  examState.violations      = 0;
+  examState.timerSecs       = EXAM_DURATION_SECONDS;
+  examState.submitted       = false;
 
-function renderAdminTable() {
-  const search  = (document.getElementById('search-input')?.value||'').toLowerCase();
-  const statusF = document.getElementById('filter-status')?.value||'';
-  const siteF   = document.getElementById('filter-site')?.value||'';
-
-  const filtered = tickets.filter(t => {
-    const ms = !search || [t.id,t.name,t.issue,t.assignedAdmin||''].some(v=>v.toLowerCase().includes(search));
-    return ms && (!statusF||t.status===statusF) && (!siteF||t.site===siteF);
+  // NEW v2: shuffle answer choices per question, remap correct index
+  shuffledQ.forEach(q => {
+    const originalChoices = q.choices;
+    const originalCorrect = q.correct;
+    // Build index array [0,1,2,3] and shuffle it
+    const idxOrder = shuffle([0,1,2,3]);
+    const newChoices = idxOrder.map(i => originalChoices[i]);
+    const newCorrect = idxOrder.indexOf(originalCorrect);
+    examState.shuffledChoices.push(newChoices);
+    examState.correctMapped.push(newCorrect);
   });
 
-  const tbody = document.getElementById('admin-table-body');
-  if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="icon">📋</div><h3>No tickets found</h3><p>Adjust filters or wait for submissions.</p></div></td></tr>`;
-    updateAdminStats(); return;
+  show('s-exam');
+  startTimer();
+  startAntiCheat();
+  updateViolationBadge();
+  renderQuestion();
+}
+
+// ════════════════════════════════════════════════════════════════
+// NEW v2: TIMER
+// ════════════════════════════════════════════════════════════════
+function startTimer() {
+  clearInterval(examState.timerInterval);
+  examState.timerInterval = setInterval(() => {
+    if (examState.submitted) { clearInterval(examState.timerInterval); return; }
+    examState.timerSecs--;
+    updateTimerDisplay();
+    if (examState.timerSecs <= 0) {
+      clearInterval(examState.timerInterval);
+      autoSubmitExam('time');
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m   = Math.floor(examState.timerSecs / 60);
+  const s   = examState.timerSecs % 60;
+  const txt = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  const el  = document.getElementById('timer-display');
+  const blk = document.getElementById('timer-block');
+  if (!el) return;
+  el.textContent = txt;
+  blk.classList.remove('warn','danger');
+  if (examState.timerSecs <= 60)       blk.classList.add('danger');
+  else if (examState.timerSecs <= 300) blk.classList.add('warn');
+}
+
+function stopTimer() {
+  clearInterval(examState.timerInterval);
+}
+
+// ════════════════════════════════════════════════════════════════
+// NEW v2: ANTI-CHEAT — visibility change detection
+// ════════════════════════════════════════════════════════════════
+function startAntiCheat() {
+  document.removeEventListener('visibilitychange', onVisibilityChange);
+  document.addEventListener('visibilitychange', onVisibilityChange);
+}
+
+function onVisibilityChange() {
+  if (document.hidden && !examState.submitted) {
+    examState.violations++;
+    updateViolationBadge();
+    if (examState.violations >= MAX_VIOLATIONS) {
+      autoSubmitExam('violations');
+    } else {
+      showAnticheatWarning();
+    }
+  }
+}
+
+function showAnticheatWarning() {
+  document.getElementById('anticheat-msg').textContent =
+    `Violation ${examState.violations} of ${MAX_VIOLATIONS} recorded.` +
+    (examState.violations === MAX_VIOLATIONS - 1 ? ' One more will auto-submit your exam.' : '');
+  document.getElementById('anticheat-overlay').classList.add('visible');
+}
+
+function resumeExam() {
+  document.getElementById('anticheat-overlay').classList.remove('visible');
+}
+
+function updateViolationBadge() {
+  const badge = document.getElementById('violation-badge');
+  const count = document.getElementById('violation-count');
+  if (!badge) return;
+  count.textContent = examState.violations;
+  if (examState.violations > 0) {
+    badge.classList.remove('hidden');
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// NEW v2: AUTO-SUBMIT (timer expired or too many violations)
+// ════════════════════════════════════════════════════════════════
+function autoSubmitExam(reason) {
+  if (examState.submitted) return;
+  examState.submitted = true;
+  stopTimer();
+  document.getElementById('anticheat-overlay').classList.remove('visible');
+  document.removeEventListener('visibilitychange', onVisibilityChange);
+
+  // Fill unanswered questions with -1 (no answer)
+  examState.answers = examState.answers.map(a => a === null ? -1 : a);
+
+  // Score
+  examState.scores = [0,0,0];
+  examState.questions.forEach((q, i) => {
+    const cat = getCatIndex(i);
+    if (examState.answers[i] === examState.correctMapped[i]) examState.scores[cat]++;
+  });
+
+  const msg = reason === 'time'
+    ? 'Time expired — your exam has been automatically submitted.'
+    : `Exam auto-submitted after ${MAX_VIOLATIONS} tab-switching violations.`;
+
+  showToast(msg);
+  setTimeout(() => showResults(), 1200);
+}
+
+// ════════════════════════════════════════════════════════════════
+// EXAM RENDERING
+// ════════════════════════════════════════════════════════════════
+function getCatIndex(qIdx) {
+  if (qIdx < 5)  return 0;
+  if (qIdx < 10) return 1;
+  return 2;
+}
+
+const catBadges = ['badge-conf','badge-integ','badge-acct'];
+const catLabels = ['Confidentiality','Integrity','Accountability'];
+const catDescs  = [
+  'How you handle sensitive information and protect privacy.',
+  'Ethical decision-making and honest professional conduct.',
+  'Owning your actions and delivering on commitments.'
+];
+
+function renderQuestion() {
+  const idx    = examState.current;
+  const q      = examState.questions[idx];
+  const cat    = getCatIndex(idx);
+  const qNum   = (idx % 5) + 1;
+  const total  = 15;
+  const chosen = examState.answers[idx];
+
+  // Progress bar
+  document.getElementById('prog-fill').style.width     = (idx / total * 100) + '%';
+  document.getElementById('prog-fraction').textContent = `${idx + 1} / ${total}`;
+  document.getElementById('prog-label').textContent    = catLabels[cat];
+  document.getElementById('exam-nav-label').textContent= `${appData.first} \u2014 ${appData.dept} Assessment`;
+
+  // Tabs
+  for (let i = 0; i < 3; i++) {
+    const tab = document.getElementById('tab-' + i);
+    tab.className = 'cat-tab';
+    if (i < cat)       tab.classList.add('done');
+    else if (i === cat) tab.classList.add('active');
+    tab.textContent = (i < cat ? '\u2713 ' : '') + catLabels[i];
   }
 
-  tbody.innerHTML = filtered.map(t => `
-    <tr>
-      <td><span class="ticket-id-badge" style="white-space:nowrap;">${escHtml(t.id)}</span></td>
-      <td><strong>${escHtml(t.name)}</strong><div style="font-size:11px;color:var(--text3);margin-top:2px;">${escHtml(t.submittedBy||'')}</div></td>
-      <td>
-        <div style="font-weight:500;">${escHtml(t.issue)}</div>
-        <div style="font-size:12px;color:var(--text2);margin-top:2px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(t.description)}">${escHtml(t.description)}</div>
-      </td>
-      <td><span style="font-size:12px;background:var(--surface3);padding:3px 8px;border-radius:4px;">${escHtml(t.site)}</span></td>
-      <td style="font-size:12px;color:var(--text2);white-space:nowrap;">${formatDate(t.dateSubmitted)}</td>
-      <td><span class="status-badge ${statusClass(t.status)}">${t.status}</span></td>
-      <td style="font-size:13px;">${t.assignedAdmin?escHtml(t.assignedAdmin):'<span style="color:var(--text3)">—</span>'}</td>
-      <td>
-        <div class="actions-cell">
-          ${t.status==='Open'?`<button class="btn btn-sm btn-accept" onclick="quickAccept('${escHtml(t.id)}')" title="Accept this ticket">✓ Accept</button>`:''}
-          ${t.status!=='Resolved'?`<button class="btn btn-sm btn-resolve" onclick="quickResolve('${escHtml(t.id)}')" title="Mark as resolved">✔ Resolve</button>`:`<span style="font-size:11px;color:var(--accent-green);">✓ Done</span>`}
-          <button class="btn btn-sm btn-edit" onclick="openModal('${escHtml(t.id)}')" title="View and edit ticket">✎ Edit</button>
-        </div>
-      </td>
-    </tr>`).join('');
-  updateAdminStats();
-}
+  // Section header on first question of each category
+  let sectionHTML = '';
+  if (qNum === 1) {
+    sectionHTML = `<div class="q-section-header">
+      <div class="q-section-badge ${catBadges[cat]}">${catLabels[cat]}</div>
+      <h3>${catLabels[cat]}</h3>
+      <p>${catDescs[cat]}</p>
+    </div>`;
+  }
 
-// ── ADMIN QUICK ACTIONS ──────────────────────────────────────────────
-async function quickAccept(id) {
-  const t = tickets.find(x=>x.id===id); if(!t) return;
-  t.status = 'Accepted'; if(!t.assignedAdmin) t.assignedAdmin = 'peer';
-  renderAdminTable();
-  pendingWrite = true;
-  await gasPost('update', t);
-  pendingWrite = false;
-  lastTicketHash = '';
-  toast('Ticket accepted!','success');
-}
-
-async function quickResolve(id) {
-  const t = tickets.find(x=>x.id===id); if(!t) return;
-  t.status = 'Resolved'; t.dateResolved = formatDatePH(new Date());
-  if(!t.assignedAdmin) t.assignedAdmin = 'peer';
-  renderAdminTable();
-  pendingWrite = true;
-  await gasPost('update', t);
-  pendingWrite = false;
-  lastTicketHash = '';
-  toast('Ticket resolved!','success');
-}
-
-// ── MODAL ────────────────────────────────────────────────────────────
-function openModal(id) {
-  const t = tickets.find(x=>x.id===id); if(!t) return;
-  activeModalTicketId = id;
-  document.getElementById('modal-ticket-id-label').textContent = `Ticket ${t.id} — ${t.issue}`;
-  document.getElementById('modal-status').value    = t.status;
-  document.getElementById('modal-admin').value     = t.assignedAdmin||'';
-  document.getElementById('modal-resolution').value= t.resolutionDetails||'';
-  document.getElementById('modal-date-resolved').value = t.dateResolved ? formatDate(t.dateResolved) : '';
-  const dg = document.getElementById('date-resolved-group');
-  dg.style.display = t.status==='Resolved'?'block':'none';
-  document.getElementById('modal-detail-view').innerHTML = `
-    <div class="detail-field"><div class="df-label">Name</div><div class="df-value">${escHtml(t.name)}</div></div>
-    <div class="detail-field"><div class="df-label">Site</div><div class="df-value">${escHtml(t.site)}</div></div>
-    <div class="detail-field full"><div class="df-label">Issue</div><div class="df-value">${escHtml(t.issue)}</div></div>
-    <div class="detail-field full"><div class="df-label">Description</div><div class="df-value" style="color:var(--text2);">${escHtml(t.description)}</div></div>
-    <div class="detail-field"><div class="df-label">Submitted</div><div class="df-value" style="font-size:13px;">${formatDate(t.dateSubmitted)}</div></div>`;
-  document.getElementById('modal-status').onchange = function() {
-    dg.style.display = this.value==='Resolved'?'block':'none';
-  };
-  document.getElementById('update-modal').classList.add('open');
-}
-function closeModal() {
-  document.getElementById('update-modal').classList.remove('open');
-  activeModalTicketId = null;
-}
-async function saveTicketUpdate() {
-  if(!activeModalTicketId) return;
-  const t = tickets.find(x=>x.id===activeModalTicketId); if(!t) return;
-  const newStatus = document.getElementById('modal-status').value;
-  t.status            = newStatus;
-  t.assignedAdmin     = document.getElementById('modal-admin').value.trim();
-  t.resolutionDetails = document.getElementById('modal-resolution').value.trim();
-  if(newStatus==='Resolved'&&!t.dateResolved) t.dateResolved = formatDatePH(new Date());
-  else if(newStatus!=='Resolved') t.dateResolved = '';
-  closeModal();
-  renderAdminTable();
-  toast('Ticket updated!','success');
-  pendingWrite = true;
-  await gasPost('update', t);
-  pendingWrite = false;
-  lastTicketHash = '';
-}
-document.getElementById('update-modal').addEventListener('click', function(e) {
-  if(e.target===this) closeModal();
-});
-
-// ── EXPORT ───────────────────────────────────────────────────────────
-const EXPORT_HEADERS = [
-  'Ticket ID','Name of User','Issue','Description','Site',
-  'Date Submitted','Ticket Status','Assigned Admin','Resolution Details','Date Resolved'
-];
-function ticketToRow(t) {
-  return [t.id||'',t.name||'',t.issue||'',t.description||'',t.site||'',
-          t.dateSubmitted||'',t.status||'',t.assignedAdmin||'',t.resolutionDetails||'',t.dateResolved||''];
-}
-function toggleExportMenu() {
-  const m = document.getElementById('export-menu');
-  m.style.display = m.style.display==='none'?'block':'none';
-}
-document.addEventListener('click', function(e) {
-  const w = document.getElementById('export-dropdown-wrap');
-  if(w&&!w.contains(e.target)){const m=document.getElementById('export-menu');if(m)m.style.display='none';}
-});
-function exportCSV() {
-  document.getElementById('export-menu').style.display='none';
-  if(!tickets.length){toast('No tickets to export.','error');return;}
-  const esc=v=>{const s=String(v);return s.includes(',')||s.includes('"')||s.includes('\n')?`"${s.replace(/"/g,'""')}"`:s;};
-  const rows=[EXPORT_HEADERS,...tickets.map(ticketToRow)];
-  const csv=rows.map(r=>r.map(esc).join(',')).join('\r\n');
-  downloadFile(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}),`HelpDesk_${getExportDate()}.csv`);
-  toast('Exported as CSV!','success');
-}
-function exportXLSX() {
-  document.getElementById('export-menu').style.display='none';
-  if(!tickets.length){toast('No tickets to export.','error');return;}
-  const rows=[EXPORT_HEADERS,...tickets.map(ticketToRow)];
-  const xmlRows=rows.map((row,ri)=>{
-    const cells=row.map((val,ci)=>{
-      const col=String.fromCharCode(65+ci),ref=`${col}${ri+1}`;
-      const esc=String(val).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-      const s=ri===0?' s="1"':'';
-      return `<c r="${ref}"${s} t="inlineStr"><is><t>${esc}</t></is></c>`;
-    }).join('');
-    return `<row r="${ri+1}">${cells}</row>`;
+  // NEW v2: use shuffled choices from examState
+  const choices  = examState.shuffledChoices[idx];
+  const letters  = ['A','B','C','D'];
+  const choicesHTML = choices.map((c, i) => {
+    let cls = 'choice-btn' + (chosen === i ? ' selected' : '');
+    return `<button class="${cls}" onclick="selectAnswer(${i})">
+      <span class="choice-letter">${letters[i]}</span><span>${c}</span>
+    </button>`;
   }).join('');
-  const sXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${xmlRows}</sheetData></worksheet>`;
-  const stXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts><font><b/><sz val="11"/></font><font><sz val="11"/></font></fonts><fills><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"><alignment horizontal="center"/></xf></cellXfs></styleSheet>`;
-  const wXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Tickets" sheetId="1" r:id="rId1"/></sheets></workbook>`;
-  const rXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>`;
-  const ctXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`;
-  const zip=buildZip([
-    {name:'[Content_Types].xml',data:ctXml},
-    {name:'_rels/.rels',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
-    {name:'xl/workbook.xml',data:wXml},
-    {name:'xl/_rels/workbook.xml.rels',data:rXml},
-    {name:'xl/worksheets/sheet1.xml',data:sXml},
-    {name:'xl/styles.xml',data:stXml}
-  ]);
-  downloadFile(new Blob([zip],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),`HelpDesk_${getExportDate()}.xlsx`);
-  toast('Exported as Excel!','success');
-}
-function getExportDate(){const d=new Date(),p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}`;}
-function downloadFile(blob,filename){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(url),1000);}
-function buildZip(files){const enc=new TextEncoder();const lhs=[],cds=[];let offset=0;function crc32(data){let c=-1;const t=new Uint32Array(256);for(let i=0;i<256;i++){let x=i;for(let j=0;j<8;j++)x=(x&1)?(0xEDB88320^(x>>>1)):(x>>>1);t[i]=x;}for(let i=0;i<data.length;i++)c=t[(c^data[i])&0xFF]^(c>>>8);return(c^-1)>>>0;}function u16(n){const b=new Uint8Array(2);new DataView(b.buffer).setUint16(0,n,true);return b;}function u32(n){const b=new Uint8Array(4);new DataView(b.buffer).setUint32(0,n,true);return b;}for(const file of files){const nb=enc.encode(file.name),db=enc.encode(file.data),crc=crc32(db),sz=db.length;const lh=new Uint8Array([0x50,0x4B,0x03,0x04,...u16(20),...u16(0),...u16(0),...u16(0),...u16(0),...u32(crc),...u32(sz),...u32(sz),...u16(nb.length),...u16(0),...nb]);lhs.push({lh,data:db,nb,crc,sz,offset});const cd=new Uint8Array([0x50,0x4B,0x01,0x02,...u16(20),...u16(20),...u16(0),...u16(0),...u16(0),...u16(0),...u16(0),...u32(crc),...u32(sz),...u32(sz),...u16(nb.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(offset),...nb]);cds.push(cd);offset+=lh.length+sz;}const cdOff=offset,cdSz=cds.reduce((s,c)=>s+c.length,0);const e2=enc.encode('HelpDesk Export');const eocd=new Uint8Array([0x50,0x4B,0x05,0x06,...u16(0),...u16(0),...u16(files.length),...u16(files.length),...u32(cdSz),...u32(cdOff),...u16(e2.length),...e2]);const parts=[];for(const{lh,data}of lhs){parts.push(lh);parts.push(data);}for(const cd of cds)parts.push(cd);parts.push(eocd);const total=parts.reduce((s,p)=>s+p.length,0),result=new Uint8Array(total);let pos=0;for(const p of parts){result.set(p,pos);pos+=p.length;}return result;}
 
-// ── INIT ─────────────────────────────────────────────────────────────
-(function init() {
-  // GAS URL is globally configured in CONFIG above — no manual setup needed
-  const configured = !!getGasUrl();
-  setSyncState('admin-sync-dot','admin-sync-text', configured ? 'syncing' : 'error', configured ? 'Connecting…' : 'GAS URL not set');
-  setSyncState('submit-sync-dot','submit-sync-text', configured ? 'syncing' : 'error', configured ? 'Connecting…' : 'GAS URL not set');
-})();
+  const isFirst = idx === 0;
+  const isLast  = idx === 14;
+
+  document.getElementById('q-area').innerHTML = `
+    ${sectionHTML}
+    <div class="q-card">
+      <div class="q-num">Question ${idx + 1} of 15 &nbsp;&middot;&nbsp; ${catLabels[cat]} ${qNum}/5</div>
+      <div class="q-text">${q.q}</div>
+      <div class="choices">${choicesHTML}</div>
+    </div>
+    <div class="nav-btns">
+      ${!isFirst ? `<button class="btn-ghost" onclick="prevQ()">&larr; Previous</button>` : `<div></div>`}
+      <span class="q-counter">${idx + 1} / 15</span>
+      <button class="btn-next" id="btn-next"
+        onclick="${isLast ? 'finishExam()' : 'nextQ()'}"
+        ${chosen === null ? 'disabled' : ''}>
+        ${isLast ? 'Submit Assessment' : 'Next Question &rarr;'}
+      </button>
+    </div>`;
+}
+
+function selectAnswer(i) {
+  examState.answers[examState.current] = i;
+  renderQuestion();
+}
+
+function nextQ() {
+  if (examState.answers[examState.current] === null) return;
+  examState.current++;
+  renderQuestion();
+}
+
+function prevQ() {
+  if (examState.current > 0) { examState.current--; renderQuestion(); }
+}
+
+function finishExam() {
+  if (examState.answers[examState.current] === null) return;
+  if (examState.submitted) return;
+  examState.submitted = true;
+  stopTimer();
+  document.removeEventListener('visibilitychange', onVisibilityChange);
+
+  // NEW v2: score uses correctMapped (remapped after shuffle)
+  examState.scores = [0,0,0];
+  examState.questions.forEach((q, i) => {
+    const cat = getCatIndex(i);
+    if (examState.answers[i] === examState.correctMapped[i]) examState.scores[cat]++;
+  });
+
+  showResults();
+}
+
+// ════════════════════════════════════════════════════════════════
+// RESULTS
+// ════════════════════════════════════════════════════════════════
+function showResults() {
+  const total = examState.scores.reduce((a,b) => a+b, 0);
+  const pct   = Math.round((total/15)*100);
+
+  let headline;
+  if (pct >= 87)      headline = 'Outstanding Performance!';
+  else if (pct >= 67) headline = 'Assessment Complete!';
+  else if (pct >= 47) headline = 'Good Effort!';
+  else                headline = 'Assessment Submitted';
+
+  document.getElementById('res-headline').textContent = headline;
+  document.getElementById('res-sub').textContent = `You scored ${total} out of 15 (${pct}%) across all categories.`;
+  document.getElementById('res-score').textContent = `${total}/15`;
+
+  // Category breakdown — no emoji icons, text labels only
+  const breakdown = examState.scores.map((s,i) => {
+    const p   = Math.round((s/5)*100);
+    const cls = p >= 80 ? 'high' : p >= 60 ? 'medium' : 'low';
+    return `<div class="score-cat-card">
+      <div class="score-cat-name">${catLabels[i]}</div>
+      <div class="score-cat-val ${cls}">${s}/5</div>
+      <div class="score-cat-sub">${p}% correct</div>
+    </div>`;
+  }).join('');
+  document.getElementById('score-breakdown').innerHTML = breakdown;
+
+  const now     = new Date();
+  const dateStr = now.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' });
+  document.getElementById('sum-name').textContent       = `${appData.first} ${appData.last}`;
+  document.getElementById('sum-email').textContent      = appData.email;
+  document.getElementById('sum-phone').textContent      = appData.phone;
+  document.getElementById('sum-role').textContent       = appData.role;
+  document.getElementById('sum-dept').textContent       = appData.dept === 'IT' ? 'Information Technology' : appData.dept === 'HR' ? 'Human Resources' : 'Operations';
+  document.getElementById('sum-violations').textContent = examState.violations === 0 ? 'None' : `${examState.violations} detected`;
+  document.getElementById('sum-date').textContent       = dateStr;
+
+  document.getElementById('submit-area').innerHTML = `<div class="results-actions">
+    <button class="btn-home" onclick="show('s-home')">&larr; Back to Home</button>
+    <button class="btn-submit-final" id="btn-final-submit" onclick="submitToSheets()">
+      Submit to KennCorp
+    </button>
+  </div>`;
+
+  show('s-results');
+}
+
+// ════════════════════════════════════════════════════════════════
+// GOOGLE SHEETS SUBMISSION — NEW v2: includes violations count
+// ════════════════════════════════════════════════════════════════
+async function submitToSheets() {
+  document.getElementById('submit-area').innerHTML = `
+    <div class="submitting-box">
+      <div class="spinner"></div>
+      Submitting your application...
+    </div>`;
+
+  const total   = examState.scores.reduce((a,b)=>a+b,0);
+  const payload = {
+    name:                `${appData.first} ${appData.last}`,
+    email:               appData.email,
+    phone:               appData.phone,
+    department:          appData.dept === 'IT' ? 'Information Technology' : appData.dept === 'HR' ? 'Human Resources' : 'Operations',
+    position:            appData.role,
+    confidentialityScore:`${examState.scores[0]}/5`,
+    integrityScore:      `${examState.scores[1]}/5`,
+    accountabilityScore: `${examState.scores[2]}/5`,
+    totalScore:          `${total}/15`,
+    percentage:          `${Math.round((total/15)*100)}%`,
+    violations:          examState.violations,  // NEW v2
+    dateSubmitted:       new Date().toISOString()
+  };
+
+  // NEW v2: save to localStorage for admin dashboard
+  saveToLocalAdmin(payload, total);
+
+  try {
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    showSubmitted(true);
+  } catch(e) {
+    showSubmitted(false);
+  }
+}
+
+function showSubmitted(ok) {
+  document.getElementById('submit-area').innerHTML = ok
+    ? `<div class="submitted-box">
+        <div style="color:var(--accent3);font-size:1.1rem;font-weight:700;margin-bottom:0.4rem">Application Submitted Successfully</div>
+        <div style="font-size:0.85rem;color:var(--muted);line-height:1.7;margin-bottom:1.2rem">Your examination has been submitted successfully. Our HR team will review your application and contact you within 5–7 business days regarding the next steps and the onboarding process.</div>
+        <button class="btn-primary" onclick="show('s-home')">Back to Home</button>
+      </div>`
+    : `<div class="submitted-box">
+        <div style="color:#dc2626;font-weight:700;margin-bottom:0.3rem">Submission Note</div>
+        <div style="font-size:0.82rem;color:var(--muted);margin-bottom:1rem">Assessment completed. Configure the Google Sheets URL to enable automatic saving. Contact careers@kenncorp.com with your details.</div>
+        <button class="btn-primary" onclick="show('s-home')">Back to Home</button>
+      </div>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// NEW v2: LOCAL ADMIN STORAGE (localStorage for dashboard)
+// ════════════════════════════════════════════════════════════════
+function saveToLocalAdmin(payload, totalInt) {
+  let records = JSON.parse(localStorage.getItem('kc_applicants') || '[]');
+  records.push({ ...payload, totalInt });
+  localStorage.setItem('kc_applicants', JSON.stringify(records));
+}
+
+function getLocalAdmin() {
+  return JSON.parse(localStorage.getItem('kc_applicants') || '[]');
+}
+
+function clearAdminData() {
+  if (confirm('Delete all local applicant records? This cannot be undone.')) {
+    localStorage.removeItem('kc_applicants');
+    renderAdmin();
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// NEW v2: ADMIN ANALYTICS DASHBOARD RENDERER
+// ════════════════════════════════════════════════════════════════
+function renderAdmin() {
+  const records = getLocalAdmin();
+  const total   = records.length;
+
+  if (total === 0) {
+    document.getElementById('admin-kpi').innerHTML  = '<p style="color:var(--muted);font-size:0.9rem;grid-column:1/-1">No submissions yet. KPI cards will appear after applicants complete and submit the exam.</p>';
+    document.getElementById('dept-chart').innerHTML = '';
+    document.getElementById('top-list').innerHTML   = '<li style="color:var(--muted);font-size:0.85rem">No data yet.</li>';
+    document.getElementById('cat-chart').innerHTML  = '';
+    document.getElementById('admin-tbody').innerHTML= '';
+    drawDonut(0, 0);
+    return;
+  }
+
+  // ── Aggregate ────────────────────────────────────────────────
+  const avgScore  = records.reduce((s,r) => s + r.totalInt, 0) / total;
+  const passing   = records.filter(r => r.totalInt >= 9).length;   // >= 60%
+  const passRate  = Math.round((passing / total) * 100);
+  const topScore  = Math.max(...records.map(r => r.totalInt));
+  const avgViol   = (records.reduce((s,r) => s + (r.violations||0), 0) / total).toFixed(1);
+
+  // KPI cards
+  document.getElementById('admin-kpi').innerHTML = `
+    <div class="stat-card c1">
+      <div class="stat-card-label">Total Applicants</div>
+      <div class="stat-card-val">${total}</div>
+      <div class="stat-card-sub">All submissions</div>
+    </div>
+    <div class="stat-card c2">
+      <div class="stat-card-label">Average Score</div>
+      <div class="stat-card-val">${avgScore.toFixed(1)}<span style="font-size:1rem">/15</span></div>
+      <div class="stat-card-sub">${Math.round(avgScore/15*100)}% average</div>
+    </div>
+    <div class="stat-card c3">
+      <div class="stat-card-label">Pass Rate</div>
+      <div class="stat-card-val">${passRate}%</div>
+      <div class="stat-card-sub">${passing} of ${total} passed</div>
+    </div>
+    <div class="stat-card c4">
+      <div class="stat-card-label">Avg Violations</div>
+      <div class="stat-card-val">${avgViol}</div>
+      <div class="stat-card-sub">Tab-switch events</div>
+    </div>`;
+
+  // Department bar chart
+  const depts = { 'Information Technology':[], 'Human Resources':[], 'Operations':[] };
+  records.forEach(r => { if (depts[r.department]) depts[r.department].push(r.totalInt); });
+  const deptColors = { 'Information Technology':'#2b6be8','Human Resources':'#e84c2b','Operations':'#7c3aed' };
+  const deptShort  = { 'Information Technology':'IT','Human Resources':'HR','Operations':'Ops' };
+  let deptHTML = '';
+  Object.entries(depts).forEach(([name, scores]) => {
+    const avg = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length/15*100).toFixed(0) : 0;
+    deptHTML += `<div class="bar-row">
+      <span class="bar-label">${deptShort[name]} (${scores.length})</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${avg}%;background:${deptColors[name]}"></div></div>
+      <span class="bar-val">${avg}%</span>
+    </div>`;
+  });
+  document.getElementById('dept-chart').innerHTML = deptHTML;
+
+  // Donut chart
+  drawDonut(passing, total - passing);
+
+  // Legend
+  document.getElementById('donut-legend').innerHTML = `
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent3)"></div><span>Passed (${passing})</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#dc2626"></div><span>Failed (${total - passing})</span></div>`;
+
+  // Top 5 scorers
+  const top5 = [...records].sort((a,b)=>b.totalInt-a.totalInt).slice(0,5);
+  document.getElementById('top-list').innerHTML = top5.map((r,i) =>
+    `<li>
+      <span class="top-rank">#${i+1}</span>
+      <span class="top-name">${r.name}</span>
+      <span class="top-score">${r.totalInt}/15</span>
+    </li>`
+  ).join('');
+
+  // Category averages bar chart
+  const cats = ['confidentialityScore','integrityScore','accountabilityScore'];
+  const catFull = ['Confidentiality','Integrity','Accountability'];
+  const catCol  = ['#e84c2b','#2b6be8','#16a34a'];
+  let catHTML = '';
+  cats.forEach((key, i) => {
+    const avgs = records.map(r => parseInt((r[key]||'0').split('/')[0]));
+    const avg  = avgs.reduce((a,b)=>a+b,0)/avgs.length;
+    const pct  = Math.round(avg/5*100);
+    catHTML += `<div class="bar-row">
+      <span class="bar-label">${catFull[i]}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${catCol[i]}"></div></div>
+      <span class="bar-val">${avg.toFixed(1)}/5</span>
+    </div>`;
+  });
+  document.getElementById('cat-chart').innerHTML = catHTML;
+
+  // Full table
+  document.getElementById('admin-tbody').innerHTML = records.map((r, i) => {
+    const pct = parseInt(r.percentage||'0');
+    const pillCls = pct >= 80 ? 'pill-high' : pct >= 60 ? 'pill-mid' : 'pill-low';
+    return `<tr>
+      <td>${i+1}</td>
+      <td><strong>${r.name}</strong></td>
+      <td>${r.position}</td>
+      <td>${r.department.replace('Information ','').replace('Human ','')}</td>
+      <td style="text-align:center">${r.confidentialityScore}</td>
+      <td style="text-align:center">${r.integrityScore}</td>
+      <td style="text-align:center">${r.accountabilityScore}</td>
+      <td style="text-align:center"><strong>${r.totalScore}</strong></td>
+      <td><span class="score-pill ${pillCls}">${r.percentage}</span></td>
+      <td style="text-align:center">${r.violations||0}</td>
+      <td style="color:var(--muted);font-size:0.78rem">${new Date(r.dateSubmitted).toLocaleDateString()}</td>
+    </tr>`;
+  }).join('');
+}
+
+// NEW v2: draw pass/fail donut on canvas
+function drawDonut(pass, fail) {
+  const canvas = document.getElementById('donut-canvas');
+  if (!canvas) return;
+  const ctx    = canvas.getContext('2d');
+  const total  = pass + fail;
+  ctx.clearRect(0, 0, 120, 120);
+  if (total === 0) {
+    ctx.beginPath(); ctx.arc(60,60,44,0,Math.PI*2);
+    ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 14; ctx.stroke();
+    return;
+  }
+  const passAngle = (pass/total) * Math.PI * 2;
+  const start     = -Math.PI / 2;
+  // fail arc
+  ctx.beginPath(); ctx.arc(60,60,44,start,start+Math.PI*2);
+  ctx.strokeStyle = '#fecaca'; ctx.lineWidth = 14; ctx.stroke();
+  // pass arc
+  if (pass > 0) {
+    ctx.beginPath(); ctx.arc(60,60,44,start,start+passAngle);
+    ctx.strokeStyle = '#16a34a'; ctx.lineWidth = 14; ctx.stroke();
+  }
+  // center label
+  ctx.fillStyle   = '#0d0d0f';
+  ctx.font        = 'bold 18px Syne, sans-serif';
+  ctx.textAlign   = 'center';
+  ctx.textBaseline= 'middle';
+  ctx.fillText(Math.round(pass/total*100)+'%', 60, 60);
+}
+
+// ════════════════════════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+// ════════════════════════════════════════════════════════════════
+// NEW v3: DARK / LIGHT MODE TOGGLE
+// ════════════════════════════════════════════════════════════════
+
+/**
+ * toggleTheme()
+ * Switches between light and dark mode.
+ * Persists the choice to localStorage so it survives page reloads.
+ * Applied to <html> via data-theme attribute so all CSS vars update.
+ */
+function toggleTheme() {
+  const html     = document.documentElement;
+  const isDark   = html.getAttribute('data-theme') === 'dark';
+  const newTheme = isDark ? 'light' : 'dark';
+  html.setAttribute('data-theme', newTheme);
+  localStorage.setItem('kc_theme', newTheme);
+}
+
+/**
+ * applyStoredTheme()
+ * Runs on page load — reads localStorage and applies the saved theme
+ * before the first paint so there is no flash of unstyled content.
+ */
+function applyStoredTheme() {
+  const saved = localStorage.getItem('kc_theme');
+  if (saved === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+}
+
+// Apply immediately (before any content renders)
+applyStoredTheme();
+
+// ════════════════════════════════════════════════════════════════
+// NEW v3: auto-submit on page unload / beforeunload
+// (kept here from v2, now below theme code for clarity)
+// ════════════════════════════════════════════════════════════════
+window.addEventListener('beforeunload', () => {
+  if (document.getElementById('s-exam').classList.contains('active') && !examState.submitted) {
+    autoSubmitExam('unload');
+  }
+});
 </script>
 </body>
 </html>
